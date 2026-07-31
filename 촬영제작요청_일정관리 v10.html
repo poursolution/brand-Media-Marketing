@@ -1,0 +1,2604 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>촬영 · 제작 요청 관리 | 미디어마케팅팀</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --ink:#15171C; --ink2:#242A36; --ink3:#39414F;
+  --paper:#EEF0F4; --card:#FFFFFF; --line:#DFE3EA; --line2:#EDF0F4;
+  --text:#1A1E27; --muted:#6E7684; --muted2:#98A0AE;
+  --shoot:#2F6FED; --shoot-bg:#E8F0FE;
+  --first:#D98416; --first-bg:#FDF2E2;
+  --final:#D6455B; --final-bg:#FCEBEE;
+  --done:#12916B; --done-bg:#E6F5F0;
+  --hold:#7A5AF8; --hold-bg:#F0EDFE;
+  --r:10px;
+  --sans:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,system-ui,"Malgun Gothic","맑은 고딕",sans-serif;
+  --mono:"JetBrains Mono",Consolas,"D2Coding",ui-monospace,SFMono-Regular,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--shoot);outline-offset:2px}
+
+/* ---------- 상단바 ---------- */
+.topbar{display:flex;align-items:center;gap:14px;height:58px;padding:0 18px;background:var(--ink);color:#fff;position:sticky;top:0;z-index:40}
+.mark{width:30px;height:30px;border-radius:6px;overflow:hidden;flex:none;background:#fff}
+.mark svg{display:block}
+.brand{display:flex;flex-direction:column;line-height:1.15}
+.brand b{font-size:14.5px;font-weight:700;letter-spacing:-.2px}
+.brand span{font-size:11px;color:#9AA3B2;font-family:var(--mono);letter-spacing:.02em}
+.spacer{flex:1}
+.saved{font-size:11.5px;color:#8E97A6;font-family:var(--mono);display:flex;align-items:center;gap:6px}
+.saved i{width:6px;height:6px;border-radius:50%;background:#3ED598;display:inline-block}
+.tbtn{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);color:#E7EAF0;padding:7px 12px;border-radius:8px;font-size:13px}
+.tbtn:hover{background:rgba(255,255,255,.17)}
+.tbtn.primary{background:#fff;color:var(--ink);border-color:#fff;font-weight:600}
+.tbtn.primary:hover{background:#E9ECF2}
+
+/* ---------- 레이아웃 ---------- */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:16px;padding:16px;align-items:start}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+
+/* ---------- 달력 헤더 ---------- */
+.calhead{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.month{font-size:22px;font-weight:700;letter-spacing:-.4px;min-width:150px}
+.month b{font-family:var(--mono);font-weight:700}
+.month span{font-size:13px;color:var(--muted);font-weight:500;margin-left:6px}
+.nav{display:flex;gap:4px}
+.nav button{width:32px;height:32px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:15px;line-height:1;color:var(--ink3)}
+.nav button:hover{background:var(--line2)}
+.today-btn{height:32px;padding:0 12px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:13px}
+.today-btn:hover{background:var(--line2)}
+.seg{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:6px;font-size:13px;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(20,25,35,.12)}
+
+/* ---------- 달력 그리드 ---------- */
+.dow{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);background:#FAFBFC}
+.dow div{padding:8px 10px;font-size:11.5px;font-weight:600;color:var(--muted);font-family:var(--mono);letter-spacing:.06em}
+.dow div:first-child{color:#C4566A}.dow div:last-child{color:#5B7FCB}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(112px,auto)}
+.day{border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:6px 7px 8px;min-width:0;background:#fff;cursor:pointer;position:relative;transition:background .12s}
+.day:nth-child(7n){border-right:0}
+.day.out{background:#FAFBFC}
+.day.out .dnum{color:var(--muted2)}
+.day:hover{background:#F7F9FC}
+.day.hit{background:#F6F9FF}
+.day.hit:hover{background:#EEF4FF}
+.day.sel{box-shadow:inset 0 0 0 2px var(--ink)}
+.dnum{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink3);display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px}
+.day.sun .dnum{color:#C4566A}.day.sat .dnum{color:#5B7FCB}
+.day.today .dnum{background:var(--ink);color:#fff}
+.evs{margin-top:5px;display:flex;flex-direction:column;gap:3px}
+.ev{display:flex;align-items:center;gap:4px;padding:3px 5px;border-radius:5px;font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;border-left:3px solid}
+.ev .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ev .st{flex:none;font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:8px;letter-spacing:-.2px}
+.ev b{display:inline-flex;align-items:center;gap:3px;flex:none}
+.ev .ico{flex:none;width:12px;height:12px;display:inline-flex}
+.ev .ico svg{width:12px;height:12px;display:block}
+.lgico{display:inline-flex;width:14px;height:14px;color:var(--ink3)}
+.lgico svg{width:14px;height:14px}
+.ev.ret{background:#E4F5F6;border-color:#0E8F9C;color:#0A6B75}
+.st-반출중{background:var(--shoot-bg);color:#1B4CB0}
+.st-연체{background:var(--final-bg);color:#9E2637}
+.st-반납완료{background:var(--done-bg);color:#0B6B4F}
+.ev.shoot{background:#F0F1F4;border-color:#15171C;color:#15171C}
+.ev.first{background:#F0F1F4;border-color:#15171C;border-left-width:4px;border-left-style:double;color:#15171C}
+.ev.final{background:var(--final-bg);border-color:var(--final);color:#9E2637}
+.ev.done{background:var(--done-bg);border-color:var(--done);color:#0B6B4F;text-decoration:line-through;text-decoration-color:rgba(11,107,79,.4)}
+.ev.edit{background:#F6F7F9;border-color:#4A5261;border-left-style:dashed;color:#242A36}
+.ev.editkey{background:repeating-linear-gradient(135deg,#FDEDF0,#FDEDF0 5px,#F9DEE4 5px,#F9DEE4 10px);border-color:var(--final);color:#8E1F30;font-weight:700}
+
+.ev b{font-weight:700;font-size:10.5px;letter-spacing:-.1px}
+.ev .urg{margin-left:auto;width:5px;height:5px;border-radius:50%;background:var(--final);flex:none}
+.more{font-size:10.5px;color:var(--muted);padding-left:6px;font-family:var(--mono)}
+.day.off{background:#FDF6F7}
+.day.off.hit{background:#FBF2F4}
+.day.off .dnum{color:#C4566A}
+.hname{font-size:10px;color:#C4566A;font-weight:600;margin-left:3px;vertical-align:1px}
+.dowarn{font-size:11.5px;margin-top:5px;color:#9E2637;font-weight:600}
+.dowarn.ok{color:var(--muted);font-weight:500;font-family:var(--mono);font-size:11px}
+.hol-list{max-height:340px;overflow:auto;border:1px solid var(--line2);border-radius:10px}
+.hol-list .hrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line2);font-size:13px}
+.hol-list .hrow:last-child{border-bottom:0}
+.hol-list .hd{font-family:var(--mono);font-size:12px;color:var(--ink3);width:96px;flex:none}
+.hol-list .hx{margin-left:auto;border:0;background:transparent;color:var(--muted2);font-size:14px;padding:2px 6px;border-radius:6px}
+.hol-list .hx:hover{background:var(--final-bg);color:var(--final)}
+.hol-list .tag{font-size:10.5px;background:var(--line2);color:var(--muted);padding:1px 6px;border-radius:10px}
+
+/* ---------- 사이드 ---------- */
+.side{display:flex;flex-direction:column;gap:14px;position:sticky;top:74px}
+.sec-h{padding:12px 14px 10px;border-bottom:1px solid var(--line2);display:flex;align-items:baseline;gap:8px}
+.sec-h h3{margin:0;font-size:13px;font-weight:700;letter-spacing:-.2px}
+.sec-h em{font-style:normal;font-size:11px;color:var(--muted);font-family:var(--mono)}
+.sec-b{padding:12px 14px}
+.filters{display:grid;gap:8px}
+.filters input,.filters select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.item{display:flex;gap:9px;padding:9px 8px;border-radius:8px;cursor:pointer;align-items:flex-start}
+.item:hover{background:var(--line2)}
+.item .bar{width:3px;border-radius:3px;align-self:stretch;flex:none;min-height:32px}
+.item .tt{font-size:12.8px;font-weight:600;line-height:1.35;margin-bottom:2px}
+.item .mm{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.empty{padding:18px 14px;color:var(--muted2);font-size:12.5px;text-align:center;line-height:1.6}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;padding:12px 14px}
+.legend span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;padding:4px 0 12px}
+.stat div b{display:block;font-family:var(--mono);font-size:19px;font-weight:700}
+.stat div span{font-size:11px;color:var(--muted)}
+
+/* ---------- 목록 뷰 ---------- */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:11.5px;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);background:#FAFBFC;font-weight:600;white-space:nowrap}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--line2);font-size:13px;vertical-align:middle}
+.tbl tr:hover td{background:#F7F9FC;cursor:pointer}
+.tbl .no{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.tbl .dt{font-family:var(--mono);font-size:12px}
+
+/* ---------- NAS 공유 ---------- */
+.nas{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);padding:5px 11px;border-radius:8px;font-size:12px;color:#C7CDD8;cursor:pointer;white-space:nowrap}
+.nas:hover{background:rgba(255,255,255,.17)}
+.nas i{width:7px;height:7px;border-radius:50%;background:#8E97A6;flex:none}
+.nas.on i{background:#3ED598;box-shadow:0 0 0 3px rgba(62,213,152,.2)}
+.nas.on{color:#E7EAF0}
+.nas b{font-weight:600}
+.nas .sy{font-family:var(--mono);font-size:10.5px;color:#8E97A6}
+/* ---------- 연결 배너 ---------- */
+.banner{padding:14px 18px 16px;background:#FFF8E6;border-bottom:1px solid #F0DFB0;color:#7A5A0B;text-align:center}
+.banner .bin{max-width:760px;margin:0 auto}
+.banner .btxt{font-size:13.5px;margin-bottom:11px}
+.banner b{color:#5C4407}
+.banner .bbig{background:#15171C;color:#fff;border:0;padding:11px 34px;border-radius:10px;font-size:15px;font-weight:700;letter-spacing:-.2px;box-shadow:0 3px 10px rgba(20,25,35,.22);transition:transform .12s,box-shadow .12s}
+.banner .bbig:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(20,25,35,.3)}
+.banner .bbig:active{transform:translateY(1px);box-shadow:0 1px 4px rgba(20,25,35,.24)}
+.banner .bsub{font-size:11.8px;color:#9A7B2E;line-height:1.62;margin-top:10px;max-width:640px;margin-left:auto;margin-right:auto}
+.banner.alert{background:#FDECEF;border-bottom-color:#F0C6CD;color:#8E1F30}
+.banner.alert b{color:#7A1626}
+.banner.alert .bsub{color:#A86672}
+.banner.alert .bbig{background:#C0304A}
+
+/* ---------- 상단 네비게이션 (항상 노출) ---------- */
+.navbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:58px;z-index:35}
+.nin{max-width:1420px;margin:0 auto;display:flex;align-items:center;gap:7px;padding:9px 16px;flex-wrap:wrap}
+.ndiv{width:1px;height:24px;background:var(--line);margin:0 4px}
+.nb{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;color:var(--ink3);padding:8px 16px;border-radius:9px;font-size:13.5px;font-weight:600;position:relative;top:0;transition:top .1s,box-shadow .1s,background .12s}
+.nb .ni{font-size:14px;line-height:1;width:19px;height:19px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;background:var(--line2);color:var(--muted)}
+.nb:hover{background:#F7F9FC;box-shadow:0 2px 6px rgba(20,25,35,.09)}
+.nb:active{top:1px;box-shadow:none}
+.nb.on{color:#fff;border-color:transparent;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
+.nb.on .ni{background:rgba(255,255,255,.24);color:#fff}
+.nb.new{background:var(--ink);color:#fff;border-color:var(--ink)}
+.nb.new .ni{background:rgba(255,255,255,.22);color:#fff}
+.nb.new:hover{background:#2A303C}
+#navHome{padding-left:26px;padding-right:26px;min-width:118px;justify-content:center}
+#navHome.on{background:var(--ink3)}
+#navCal.on{background:var(--shoot)}
+#navCal .ni{background:var(--shoot-bg);color:#1B4CB0}
+#navList.on{background:var(--hold)}
+#navList .ni{background:var(--hold-bg);color:#4C33C4}
+#navEq.on{background:var(--equip)}
+#navEq .ni{background:var(--equip-bg);color:#0A6B75}
+
+/* ---------- 홈 화면 ---------- */
+.home{padding:26px 28px 24px}
+.hhead{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:22px}
+.hhead h1{margin:0 0 5px;font-size:25px;font-weight:800;letter-spacing:-.7px}
+.hhead p{margin:0;color:var(--muted);font-size:13.5px}
+.hstat{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.hstat div{background:#FAFBFC;border:1px solid var(--line);border-radius:10px;padding:9px 15px;text-align:center;min-width:74px}
+.hstat b{display:block;font-family:var(--mono);font-size:19px;font-weight:700;line-height:1.15}
+.hstat span{font-size:11px;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(252px,1fr));gap:14px}
+.card{border:1px solid var(--line);border-radius:13px;padding:18px 18px 16px;background:#fff;border-top:4px solid var(--line);display:flex;flex-direction:column;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(20,25,35,.11)}
+.card:active{transform:translateY(0);box-shadow:0 2px 6px rgba(20,25,35,.1)}
+.card .ch{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.card .cic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+.card h3{margin:0;font-size:16.5px;font-weight:700;letter-spacing:-.3px}
+.card p{margin:0 0 10px;font-size:13.2px;color:var(--ink3);line-height:1.65}
+.card ul{margin:0 0 15px;padding-left:16px;font-size:12px;color:var(--muted);line-height:1.75}
+.card .cbtn{margin-top:auto;width:100%;border:0;padding:10px;border-radius:9px;font-size:13.5px;font-weight:700;color:#fff;position:relative;top:0;transition:top .1s,filter .12s}
+.card:hover .cbtn{filter:brightness(1.08)}
+.card:active .cbtn{top:1px}
+.c-new{border-top-color:var(--ink)} .c-new .cic{background:var(--ink);color:#fff} .c-new .cbtn{background:var(--ink)}
+.c-cal{border-top-color:var(--shoot)} .c-cal .cic{background:var(--shoot-bg);color:#1B4CB0} .c-cal .cbtn{background:var(--shoot)}
+.c-list{border-top-color:var(--hold)} .c-list .cic{background:var(--hold-bg);color:#4C33C4} .c-list .cbtn{background:var(--hold)}
+.c-eq{border-top-color:var(--equip)} .c-eq .cic{background:var(--equip-bg);color:#0A6B75} .c-eq .cbtn{background:var(--equip)}
+.hfoot{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.hf{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#FAFBFC;min-height:96px}
+.hf h4{margin:0 0 9px;font-size:12.5px;font-weight:700;color:var(--ink3);display:flex;align-items:center;gap:7px}
+.hf h4 em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:500}
+.hf .r{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12.8px;border-bottom:1px solid var(--line2);cursor:pointer}
+.hf .r:last-child{border-bottom:0}
+.hf .r:hover{color:var(--shoot)}
+.hf .r .bar{width:3px;height:15px;border-radius:3px;flex:none}
+.hf .r .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hf .r .dd{font-family:var(--mono);font-size:11px;color:var(--muted);flex:none}
+.hf .none{color:var(--muted2);font-size:12.5px;padding:10px 0;text-align:center}
+body.homemode .side{display:none}
+body.homemode .layout{grid-template-columns:minmax(0,1fr)}
+.nas.staff i{background:#F2B705}
+.tip-pop{position:fixed;z-index:200;max-width:290px;background:#1B1F27;color:#EDF0F5;font-size:12.5px;line-height:1.62;padding:10px 13px;border-radius:9px;box-shadow:0 10px 30px rgba(10,14,22,.34);pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
+.tip-pop.on{opacity:1;transform:translateY(0)}
+.tip-pop b{color:#fff}
+.opt[data-tip]{position:relative}
+.opt[data-tip]::after{content:"?";position:absolute;top:-5px;right:-4px;width:13px;height:13px;border-radius:50%;background:var(--line);color:var(--muted);font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
+.opt[data-tip]:hover::after{background:var(--ink);color:#fff}
+.box.off{opacity:.42;pointer-events:none}
+.offmsg{display:none;font-size:12.5px;color:var(--muted);background:#F7F8FA;border:1px dashed var(--line);border-radius:10px;padding:13px;text-align:center}
+.offmsg.on{display:block}
+.chg{display:flex;gap:9px;padding:8px;border-radius:8px;align-items:flex-start}
+.chg:hover{background:var(--line2);cursor:pointer}
+.chg .ic{width:22px;height:22px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;font-family:var(--mono)}
+.chg .ic.q{background:var(--shoot-bg);color:#1B4CB0}
+.chg .ic.e{background:var(--equip-bg);color:#0A6B75}
+.chg .ic.d{background:var(--final-bg);color:#9E2637}
+.chg .tt{font-size:12.6px;font-weight:600;line-height:1.35}
+.chg .mm{font-size:10.8px;color:var(--muted);font-family:var(--mono)}
+.chg.new{background:#F3F9FF}
+.who{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);padding:10px 12px;background:#FAFBFC;border:1px solid var(--line);border-radius:10px;margin-top:12px}
+.who b{color:var(--text)}
+.who button{margin-left:auto;border:1px solid var(--line);background:#fff;padding:4px 10px;border-radius:7px;font-size:12px}
+
+/* ---------- 장비 페이지 ---------- */
+body.eqmode .layout{grid-template-columns:minmax(0,1fr)}
+body.eqmode .side{display:none}
+.eqbar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.eqbar .spacer{flex:1}
+.subseg{display:flex;gap:2px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:2px}
+.subseg button{border:0;background:transparent;padding:6px 13px;border-radius:6px;font-size:13px;color:var(--muted)}
+.subseg button.on{background:#fff;color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(20,25,35,.12)}
+.eqsearch{padding:8px 11px;border:1px solid var(--line);border-radius:8px;width:200px}
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;padding:16px}
+.sumcard{border:1px solid var(--line);border-radius:10px;padding:14px;border-top:3px solid var(--line)}
+.sumcard b{display:block;font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.1}
+.sumcard span{font-size:12px;color:var(--muted)}
+.sumcard .pct{float:right;font-family:var(--mono);font-size:12px;color:var(--muted2);margin-top:8px}
+.sumcard .ex{display:block;font-size:11px;color:var(--muted2);margin-top:7px;line-height:1.4;clear:both}
+.sc-사용중{border-top-color:var(--done)}.sc-대여중{border-top-color:var(--shoot)}
+.sc-수리중{border-top-color:var(--first)}.sc-미사용{border-top-color:var(--muted2)}
+.sc-폐기예정{border-top-color:var(--hold)}.sc-폐기완료{border-top-color:var(--final)}
+.e-사용중{background:var(--done-bg);color:#0B6B4F}
+.e-대여중{background:var(--shoot-bg);color:#1B4CB0}
+.e-수리중{background:var(--first-bg);color:#95590A}
+.e-미사용{background:#F1F3F7;color:#565E6D}
+.e-폐기예정{background:var(--hold-bg);color:#4C33C4}
+.e-폐기완료{background:var(--final-bg);color:#9E2637}
+.eqnote{padding:12px 16px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line2);background:#FAFBFC;line-height:1.7}
+.mini{border:0;background:var(--line2);color:var(--ink3);font-size:11.5px;padding:4px 9px;border-radius:6px;font-weight:600}
+.mini:hover{background:#DFE4EC}
+.mini.go{background:var(--done-bg);color:#0B6B4F}
+.mini.go:hover{background:#D3EEE5}
+.stsel{border:1px solid var(--line);border-radius:20px;padding:2px 8px;font-size:11.5px;font-weight:600;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none;text-align:center}
+.stsel:hover{border-color:var(--ink3)}
+/* 화면 제목 */
+.ptitle{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.ptitle .pic{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--line2);color:var(--muted)}
+.ptitle.cal .pic{background:var(--shoot-bg);color:#1B4CB0}
+.ptitle.list .pic{background:var(--hold-bg);color:#4C33C4}
+.ptitle.eq .pic{background:var(--equip-bg);color:#0A6B75}
+.pdiv{width:1px;height:20px;background:var(--line);display:inline-block;margin:0 2px}
+/* 홈 제목 편집 */
+.htitle{position:relative}
+.tedit{margin-top:8px;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:11.5px;padding:4px 11px;border-radius:7px}
+.tedit:hover{background:var(--line2);color:var(--text)}
+.hstat div .sub{display:block;font-size:10.5px;color:var(--muted2);margin-top:3px;font-family:var(--mono)}
+/* 장비 설명 칸 */
+.dcell{max-width:280px;font-size:12px;color:var(--ink3)}
+.dtxt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5}
+.dnone{color:var(--muted2)}
+/* 부서 색상 */
+.dbadge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.ddot{width:7px;height:7px;border-radius:50%;flex:none;display:inline-block}
+.ev .ddot{width:6px;height:6px;margin-right:1px}
+.lbtn{float:right;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:11px;font-weight:600;padding:2px 9px;border-radius:6px;margin-top:-2px}
+.lbtn:hover{background:var(--line2);color:var(--text)}
+.dprow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line2)}
+.dprow:last-child{border-bottom:0}
+.dprow input[type=color]{width:34px;height:30px;padding:2px;border:1px solid var(--line);border-radius:7px;background:#fff;cursor:pointer;flex:none}
+.dprow input[type=text]{flex:1;padding:6px 10px}
+.dprow .cnt{font-size:11px;color:var(--muted2);font-family:var(--mono);white-space:nowrap}
+.dprow .del{border:0;background:transparent;color:var(--muted2);font-size:14px;padding:4px 7px;border-radius:6px;flex:none}
+.dprow .del:hover{background:var(--final-bg);color:var(--final)}
+.deptlegend{display:flex;flex-wrap:wrap;gap:6px 11px;padding:11px 14px}
+.deptlegend span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+#deptSel{font-weight:600}
+.eqname{border-bottom:1px dotted var(--muted2);cursor:help}
+.eqname:hover{border-bottom-color:var(--ink);color:var(--shoot)}
+.tip-pop.wide{max-width:340px;white-space:pre-line}
+.badge{display:inline-block;padding:2.5px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-긴급{background:var(--final-bg);color:#9E2637}
+.b-일반{background:var(--shoot-bg);color:#1B4CB0}
+.b-협의{background:#F1F3F7;color:#565E6D}
+.s-접수대기{background:#F1F3F7;color:#565E6D}
+.s-검토중{background:var(--first-bg);color:#95590A}
+.s-촬영예정{background:var(--shoot-bg);color:#1B4CB0}
+.s-편집중{background:var(--hold-bg);color:#4C33C4}
+.s-완료{background:var(--done-bg);color:#0B6B4F}
+.s-보류{background:#F1F3F7;color:#8A919E}
+
+/* ---------- 모달 ---------- */
+.modal{position:fixed;inset:0;background:rgba(16,19,25,.5);z-index:60;display:none;padding:24px;overflow:auto}
+.modal.on{display:block}
+.sheet{background:var(--card);border-radius:14px;max-width:940px;margin:0 auto;box-shadow:0 20px 60px rgba(10,14,22,.3);overflow:hidden}
+.sheet.sm{max-width:560px}
+.mh{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:2}
+.mh h2{margin:0;font-size:16.5px;font-weight:700;letter-spacing:-.3px}
+.mh .no{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.x{width:32px;height:32px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:16px;line-height:1;color:var(--muted)}
+.x:hover{background:var(--line2)}
+.mb{padding:6px 20px 20px}
+.mf{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--line);background:#FAFBFC;position:sticky;bottom:0}
+.btn{padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:13.5px}
+.btn:hover{background:var(--line2)}
+.btn.pri{background:var(--ink);color:#fff;border-color:var(--ink);font-weight:600}
+.btn.pri:hover{background:#2A303C}
+.btn.dgr{color:var(--final);border-color:#F0C6CD}
+.btn.dgr:hover{background:var(--final-bg)}
+
+/* ---------- 폼 ---------- */
+.fs{border:0;padding:0;margin:22px 0 0}
+.fs>legend{padding:0;margin-bottom:10px;display:flex;align-items:center;gap:9px;width:100%}
+.fs>legend .n{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--ink);width:20px;height:20px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.fs>legend .t{font-size:14px;font-weight:700;letter-spacing:-.2px}
+.fs>legend .l{flex:1;height:1px;background:var(--line)}
+.g{display:grid;gap:10px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.f label.lb{display:block;font-size:12px;font-weight:600;color:var(--ink3);margin-bottom:5px}
+.f label.lb em{font-style:normal;color:var(--final);margin-left:2px}
+.f input[type=text],.f input[type=date],.f input[type=number],.f textarea,.f select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.f input:focus,.f textarea:focus,.f select:focus{border-color:var(--shoot);outline:none;box-shadow:0 0 0 3px rgba(47,111,237,.12)}
+.f textarea{resize:vertical;min-height:60px}
+.f input[type=date]{font-family:var(--mono)}
+.hint{font-size:11.5px;color:var(--muted2);margin-top:4px}
+.opts{display:flex;flex-wrap:wrap;gap:7px}
+.opt{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:13px;cursor:pointer;user-select:none}
+.opt:hover{background:#F7F9FC}
+.opt input{margin:0;accent-color:var(--ink);width:14px;height:14px}
+.opt:has(input:checked){border-color:var(--ink);background:#F4F6FA;font-weight:600}
+.opts.col{flex-direction:column;align-items:stretch}
+.sub{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.sub input[type=text],.sub input[type=number]{padding:6px 9px}
+.w80{width:80px!important}.w120{width:120px!important}
+.box{border:1px solid var(--line2);background:#FBFCFD;border-radius:10px;padding:12px}
+.box+.box{margin-top:10px}
+.box>h4{margin:0 0 8px;font-size:12px;font-weight:700;color:var(--ink3)}
+.draftbar{display:flex;align-items:center;gap:10px;background:var(--first-bg);border:1px solid #F3DDB8;color:#95590A;padding:9px 12px;border-radius:8px;font-size:12.5px;margin-top:14px}
+.draftbar button{margin-left:auto;background:transparent;border:1px solid #E2C289;color:#95590A;padding:4px 10px;border-radius:6px;font-size:12px}
+
+/* ---------- 상세 보기 ---------- */
+.dv{margin-top:16px}
+.dv h4{margin:0 0 8px;font-size:12px;font-weight:700;color:#fff;background:var(--ink3);display:inline-block;padding:3px 9px;border-radius:5px}
+.dl{display:grid;grid-template-columns:132px 1fr;border-top:1px solid var(--line2)}
+.dl dt{padding:9px 10px;font-size:12.5px;font-weight:600;color:var(--ink3);background:#FAFBFC;border-bottom:1px solid var(--line2)}
+.dl dd{margin:0;padding:9px 12px;font-size:13px;border-bottom:1px solid var(--line2);white-space:pre-wrap;word-break:break-word}
+.dl dd:empty::after{content:"—";color:var(--muted2)}
+.statusrow{display:flex;align-items:center;gap:10px;padding:12px;background:#FAFBFC;border:1px solid var(--line);border-radius:10px;margin-top:14px;flex-wrap:wrap}
+.statusrow select{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.keydates{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.kd{border:1px solid var(--line);border-radius:10px;padding:10px 12px;border-top:3px solid}
+.kd.shoot{border-top-color:var(--shoot)}.kd.first{border-top-color:var(--first)}.kd.final{border-top-color:var(--final)}
+.kd span{font-size:11px;color:var(--muted);display:block}
+.kd b{font-family:var(--mono);font-size:15px;font-weight:700}
+.kd b.none{color:var(--muted2);font-weight:400;font-size:13px}
+
+/* ---------- 토스트 ---------- */
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:99;box-shadow:0 8px 24px rgba(10,14,22,.3)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 인쇄 ---------- */
+#printArea{display:none}
+@media print{
+  body{background:#fff}
+  body>*{display:none!important}
+  #printArea{display:block!important;padding:0;font-size:11px}
+  #printArea h1{font-size:17px;text-align:center;margin:0 0 4px}
+  #printArea .psub{text-align:center;font-size:10px;color:#555;margin-bottom:14px}
+  #printArea h4{background:#222;color:#fff;font-size:11px;padding:3px 8px;display:inline-block;margin:14px 0 6px;border-radius:0}
+  #printArea .dl{grid-template-columns:120px 1fr;border-top:1px solid #999}
+  #printArea .dl dt{background:#F2F2F2;border-bottom:1px solid #BBB;padding:5px 8px;font-size:10.5px}
+  #printArea .dl dd{border-bottom:1px solid #BBB;padding:5px 8px;font-size:10.5px}
+  #printArea .sign{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #999;margin-top:20px;text-align:center}
+  #printArea .sign div{padding:8px;border-right:1px solid #999}
+  #printArea .sign div:last-child{border-right:0}
+  #printArea .sign b{display:block;font-size:10.5px;margin-bottom:26px}
+  @page{size:A4;margin:14mm}
+}
+
+@media (max-width:1080px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static}
+  .grid{grid-auto-rows:minmax(92px,auto)}
+}
+@media (max-width:640px){
+  .g2,.g3,.keydates{grid-template-columns:1fr}
+  .modal{padding:0}
+  .sheet{border-radius:0}
+  .month{font-size:18px;min-width:120px}
+  .brand span{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="mark">
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+      <rect width="30" height="30" fill="#15171C"/>
+      <g fill="#fff"><path d="M2 4h5l-3 5H2z"/><path d="M9 4h5l-3 5H6z"/><path d="M16 4h5l-3 5h-5z"/><path d="M23 4h5v5h-8z"/></g>
+      <rect x="2" y="11" width="26" height="15" fill="#fff"/>
+      <rect x="5" y="14" width="20" height="9" fill="#15171C"/>
+      <circle cx="15" cy="18.5" r="2.6" fill="#D6455B"/>
+    </svg>
+  </div>
+  <div class="brand"><b>미디어마케팅팀</b><span>촬영 · 제작 요청 관리</span></div>
+  <div class="spacer"></div>
+  <div class="saved" id="savedAt"><i></i>자동 저장 준비됨</div>
+  <button class="nas staff" id="btnStaff" title="담당자 정보 수정"><i></i><b>담당자 미지정</b></button>
+  <button class="nas" id="btnNas" title="NAS 공유 폴더에 연결"><i></i><b>공유 안 함</b></button>
+  <button class="tbtn" id="btnExport">내보내기</button>
+  <button class="tbtn" id="btnImport">불러오기</button>
+  <input type="file" id="fileIn" accept=".json" hidden>
+  <button class="tbtn primary" id="btnNew">+ 새 요청서</button>
+</header>
+
+<div class="banner" id="nasBanner" hidden>
+  <div class="bin">
+    <div class="btxt" id="nasMsg"><b>이 PC에만 저장되고 있습니다.</b> NAS 공유 폴더에 연결하면 팀원이 수정한 내용이 자동으로 함께 보입니다.</div>
+    <button class="bbig" id="nasConnect">지금 연결</button>
+    <div class="bsub" id="nasSub">NAS 공유 폴더와 이 프로그램을 연결합니다. 연결하면 내가 작성한 내용이 팀원에게 자동으로 보이고, 팀원이 고친 내용도 15초마다 자동으로 들어옵니다. 연결하지 않으면 이 컴퓨터에만 저장됩니다.</div>
+  </div>
+</div>
+
+<nav class="navbar">
+  <div class="nin">
+    <button class="nb new" id="navNew"><span class="ni">＋</span><span class="nt">새 요청서</span></button>
+    <span class="ndiv"></span>
+    <button class="nb" id="navHome"><span class="ni">⌂</span><span class="nt">홈</span></button>
+    <button class="nb cal" id="navCal"><span class="ni">▦</span><span class="nt">일정표</span></button>
+    <button class="nb list" id="navList"><span class="ni">☰</span><span class="nt">일정 목록</span></button>
+    <button class="nb eq" id="navEq"><span class="ni">▣</span><span class="nt">보유 장비</span></button>
+  </div>
+</nav>
+
+<main class="layout">
+  <!-- 홈 -->
+  <section class="panel home" id="homeWrap">
+    <div class="hhead">
+      <div class="htitle">
+        <h1 id="homeTitle">촬영 제작 요청 관리</h1>
+        <p id="homeSub"></p>
+        <button class="tedit" id="btnHomeEdit" title="제목 · 안내문 수정">✎ 문구 수정</button>
+      </div>
+      <div class="hstat" id="homeStat"></div>
+    </div>
+
+    <div class="cards">
+      <div class="card c-new" data-go="new">
+        <div class="ch"><span class="cic">＋</span><h3>새 요청서</h3></div>
+        <p>촬영이나 편집을 미디어마케팅팀에 의뢰합니다. 제품 정보와 원하는 결과물, 납품 희망일을 적으면 일정표에 자동으로 등록됩니다.</p>
+        <ul><li>촬영 없이 편집만 요청할 수도 있습니다</li><li>선택 항목에 마우스를 올리면 설명이 나옵니다</li></ul>
+        <button class="cbtn">요청서 작성하기</button>
+      </div>
+
+      <div class="card c-cal" data-go="cal">
+        <div class="ch"><span class="cic">▦</span><h3>일정표</h3></div>
+        <p>한 달치 일정을 달력으로 봅니다. 촬영일·편집일·납품일이 색으로 구분되고, 장비 반납 예정일도 함께 표시됩니다.</p>
+        <ul><li>편집일은 납품일 기준으로 자동 계산됩니다</li><li>주말과 공휴일은 자동으로 제외됩니다</li></ul>
+        <button class="cbtn">일정표 열기</button>
+      </div>
+
+      <div class="card c-list" data-go="list">
+        <div class="ch"><span class="cic">☰</span><h3>일정 목록</h3></div>
+        <p>모든 요청서를 표로 봅니다. 요청번호·부서·우선순위·진행 상태를 한 번에 확인할 수 있어 건수가 많을 때 편합니다.</p>
+        <ul><li>검색과 필터로 원하는 건만 골라 봅니다</li><li>줄을 클릭하면 상세 내용이 열립니다</li></ul>
+        <button class="cbtn">목록 열기</button>
+      </div>
+
+      <div class="card c-eq" data-go="eq">
+        <div class="ch"><span class="cic">▣</span><h3>보유 장비</h3></div>
+        <p>촬영 장비를 누가 언제 가져갔고 언제 돌려주는지 관리합니다. 장비대장과 상태별 현황도 함께 볼 수 있습니다.</p>
+        <ul><li>반납 예정일이 지나면 자동으로 연체 표시됩니다</li><li>반출을 등록하면 현황이 즉시 갱신됩니다</li></ul>
+        <button class="cbtn">장비 관리 열기</button>
+      </div>
+    </div>
+
+    <div class="hfoot">
+      <div class="hf" id="hfToday"></div>
+      <div class="hf" id="hfSoon"></div>
+    </div>
+  </section>
+
+  <!-- 달력 / 목록 / 장비 -->
+  <section class="panel" id="workWrap" hidden>
+    <div class="calhead">
+      <div class="ptitle" id="pageTitle"><span class="pic">▦</span><b>일정표</b></div>
+      <div id="calHeadTools" style="display:flex;align-items:center;gap:10px">
+        <span class="pdiv"></span>
+        <div class="month"><b id="mTitle">2026. 07</b><span id="mSub"></span></div>
+        <div class="nav"><button id="prev" title="이전 달">‹</button><button id="next" title="다음 달">›</button></div>
+        <button class="today-btn" id="btnToday">오늘</button>
+      </div>
+      <div class="spacer"></div>
+      <button class="today-btn" id="btnBackHome">⌂ 홈으로</button>
+    </div>
+
+    <div id="calWrap">
+      <div class="dow"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div id="listWrap" hidden>
+      <table class="tbl">
+        <thead><tr><th>요청번호</th><th>프로젝트명</th><th>요청부서</th><th>우선순위</th><th>촬영일</th><th>최종 납품</th><th>상태</th></tr></thead>
+        <tbody id="listBody"></tbody>
+      </table>
+    </div>
+    <div id="eqWrap" hidden>
+      <div class="eqbar">
+        <div class="subseg">
+          <button id="subLog" class="on">반출입 일지</button>
+          <button id="subReg">장비대장</button>
+          <button id="subSum">현황 요약</button>
+        </div>
+        <input type="text" id="eqQ" class="eqsearch" placeholder="장비명 · 반출자 · 모델명">
+        <div class="spacer"></div>
+        <button class="btn" id="btnNewEq">+ 장비 등록</button>
+        <button class="btn pri" id="btnNewLog">+ 반출 등록</button>
+      </div>
+
+      <div id="logView">
+        <table class="tbl">
+          <thead><tr><th>반출일</th><th>장비</th><th>수량</th><th>반출 부서 / 반출자</th><th>사용 목적 · 현장</th><th>반납 예정</th><th>실제 반납</th><th>상태</th><th></th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+
+      <div id="regView" hidden>
+        <table class="tbl">
+          <thead><tr><th>관리번호</th><th>장비명</th><th>모델명 / 규격</th><th>카테고리</th><th>사용/보관 부서</th><th>담당자</th><th>현재 상태</th><th>보관 위치</th><th>비고</th><th style="min-width:180px">설명</th><th style="width:60px"></th></tr></thead>
+          <tbody id="regBody"></tbody>
+        </table>
+        <div class="eqnote">① 신규 장비 취득 즉시 등록 &nbsp;② 상태 변경(대여·수리·폐기) 시 즉시 업데이트 &nbsp;③ 비고란에 수리 이력·특이사항 기록 &nbsp;④ 분기 1회 전체 재고 확인 권장<br>반출입 일지에 미반납 건이 있으면 <b>반출중</b> 표시가 붙고, 현황 요약에서 자동으로 <b>대여중</b>으로 집계됩니다. 상태는 표에서 바로 바꿀 수 있습니다.
+          <div style="margin-top:10px"><button class="btn" id="btnSeed" style="font-size:12.5px;padding:6px 12px">첨부 장비대장(11개 품목) 다시 등록</button></div></div>
+      </div>
+
+      <div id="sumView" hidden>
+        <div class="sumgrid" id="sumGrid"></div>
+        <div class="eqnote" id="sumNote"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 사이드 -->
+  <aside class="side">
+    <div class="panel">
+      <div class="sec-h"><h3 id="selTitle">선택한 날짜</h3><em id="selCount"></em></div>
+      <div id="dayList"><div class="empty">달력에서 날짜를 선택하세요.</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec-h"><h3>마감 임박</h3><em>D-7 이내</em></div>
+      <div id="soonList"><div class="empty">임박한 납품 일정이 없습니다.</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec-h"><h3>이번 달</h3></div>
+      <div class="stat" id="stat" style="grid-template-columns:repeat(4,1fr)">
+        <div><b id="stShoot">0</b><span>촬영</span></div>
+        <div><b id="stEdit">0</b><span>편집</span></div>
+        <div><b id="stFirst">0</b><span>1차 납품</span></div>
+        <div><b id="stFinal">0</b><span>최종 납품</span></div>
+      </div>
+      <div class="legend" id="typeLegend" style="border-top:1px solid var(--line2)"></div>
+      <div class="deptlegend" id="deptLegend" style="border-top:1px solid var(--line2)"></div>
+      <div style="padding:0 14px 12px"><button class="btn" id="btnHol" style="width:100%;font-size:12.5px;padding:7px">휴무일 관리</button></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec-h"><h3>최근 변경</h3><em id="chgWho"></em></div>
+      <div id="chgList"><div class="empty">아직 변경 기록이 없습니다.</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="sec-h"><h3>검색 · 필터</h3></div>
+      <div class="sec-b filters">
+        <input type="text" id="fq" placeholder="프로젝트명 · 제품명 · 요청자">
+        <div class="frow">
+          <select id="fStatus"><option value="">상태 전체</option></select>
+          <select id="fPri"><option value="">우선순위 전체</option><option>긴급</option><option>일반</option><option>협의 필요</option></select>
+        </div>
+        <select id="fDept"><option value="">요청부서 전체</option></select>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- ============ 요청서 작성 모달 ============ -->
+<div class="modal" id="formModal">
+  <div class="sheet">
+    <div class="mh">
+      <h2 id="formTitle">신제품 촬영 및 편집 업무 요청서</h2>
+      <span class="no" id="formNo"></span>
+      <div class="spacer"></div>
+      <button class="x" data-close>✕</button>
+    </div>
+    <div class="mb">
+      <div class="draftbar" id="draftBar" hidden>작성 중이던 내용을 불러왔습니다.<button type="button" id="dropDraft">새로 작성</button></div>
+      <p class="hint" style="margin:14px 0 0">타 부서에서 신제품 영상 콘텐츠(촬영·편집)를 미디어마케팅팀에 요청하는 공식 양식입니다. 가능한 한 구체적으로 작성해 주세요.</p>
+      <form id="reqForm" class="f" autocomplete="off">
+
+        <fieldset class="fs"><legend><span class="n">1</span><span class="t">기본 정보</span><span class="l"></span></legend>
+          <div class="g g2">
+            <div><label class="lb">요청부서 <em>*</em> <button type="button" class="lbtn" id="btnDeptMng">부서 관리</button></label>
+              <select name="dept" id="deptSel"></select>
+              <input type="text" name="deptEtc" id="deptEtc" placeholder="부서명 직접 입력" style="margin-top:7px" hidden></div>
+            <div><label class="lb">프로젝트명 <em>*</em></label><input type="text" name="projectName" placeholder="예: 2026년 하반기 신제품 'OOO' 런칭 캠페인"></div>
+          </div>
+          <div class="g g3" style="margin-top:10px">
+            <div><label class="lb">요청자 성명</label><input type="text" name="reqName"></div>
+            <div><label class="lb">직급</label><input type="text" name="reqRank"></div>
+            <div><label class="lb">연락처</label><input type="text" name="reqTel" placeholder="내선 또는 휴대폰"></div>
+          </div>
+          <div class="g g2" style="margin-top:10px">
+            <div><label class="lb">작성일</label><input type="date" name="writeDate"></div>
+            <div><label class="lb">우선순위</label>
+              <div class="opts">
+                <label class="opt"><input type="radio" name="priority" value="긴급">긴급 (3영업일 이내)</label>
+                <label class="opt"><input type="radio" name="priority" value="일반" checked>일반 (5~7영업일)</label>
+                <label class="opt"><input type="radio" name="priority" value="협의 필요">협의 필요</label>
+              </div>
+              <div class="hint">편집 및 수정 기간을 고려해 최소 3일 이상 필요합니다.</div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="fs"><legend><span class="n">2</span><span class="t">프로젝트 개요</span><span class="l"></span></legend>
+          <div class="g g2">
+            <div><label class="lb">제작 목적</label><textarea name="purpose" placeholder="예: 신제품 인지도 제고 및 판매 촉진 / 사용법 교육 / 브랜드 이미지 강화"></textarea></div>
+            <div><label class="lb">기대 효과 (KPI)</label><textarea name="kpi" placeholder="예: 조회수 10만 이상, 전환율 3% 이상, 브랜드 검색량 증가"></textarea></div>
+          </div>
+          <div class="g g2" style="margin-top:10px">
+            <div><label class="lb">주요 타겟</label><input type="text" name="target" placeholder="예: 30~40대 여성, 주부, 1인 가구"></div>
+            <div><label class="lb">핵심 메시지</label><input type="text" name="message" placeholder="예: 슬로건"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="fs"><legend><span class="n">3</span><span class="t">제품 정보</span><span class="l"></span></legend>
+          <div class="g g2">
+            <div><label class="lb">제품명</label><input type="text" name="prodName"></div>
+            <div><label class="lb">카테고리</label><input type="text" name="prodCat"></div>
+          </div>
+          <div class="g g3" style="margin-top:10px">
+            <div><label class="lb">주요 특징 / USP 1</label><input type="text" name="usp1"></div>
+            <div><label class="lb">USP 2</label><input type="text" name="usp2"></div>
+            <div><label class="lb">USP 3</label><input type="text" name="usp3"></div>
+          </div>
+          <div style="margin-top:12px"><label class="lb">제품 상세 설명 · 기타 정보</label>
+            <textarea name="prodEtc" style="min-height:110px" placeholder="규격·용량·색상, 사용 방법, 주의사항, 경쟁 제품과의 차이, 인증·시험성적, 가격 정책, 촬영 시 주의할 점(파손 주의·냉장 보관 등) 등 영상 제작에 참고할 내용을 자유롭게 적어 주세요. 길게 적을수록 결과물이 정확해집니다."></textarea>
+            <div class="hint">칸이 모자라면 줄을 바꿔 계속 작성하면 됩니다. 길이 제한 없습니다.</div></div>
+          <div class="box" style="margin-top:12px">
+            <h4>제공 자료</h4>
+            <div class="opts">
+              <label class="opt" data-tip="촬영용 제품 실물을 미디어마케팅팀에 전달합니다. 촬영 3일 전까지 도착해야 일정에 차질이 없습니다."><input type="checkbox" name="materials" value="제품 실물">제품 실물</label>
+              <span class="sub">수량 <input type="text" name="materialQty" class="w80" placeholder="예: 2개"></span>
+              <label class="opt" data-tip="크기·중량·성분·인증번호 등이 정리된 문서. 자막이나 인포그래픽 제작에 사용됩니다."><input type="checkbox" name="materials" value="상세 스펙시트">상세 스펙시트</label>
+              <label class="opt" data-tip="누끼(배경 제거) 이미지나 원본 사진. 편집 중 보조 컷으로 활용합니다."><input type="checkbox" name="materials" value="고해상도 제품 이미지">고해상도 제품 이미지</label>
+              <label class="opt" data-tip="이전에 만든 영상·사진 소재. 재활용하면 촬영 없이도 편집이 가능한 경우가 있습니다."><input type="checkbox" name="materials" value="기존 영상/사진">기존 영상/사진</label>
+              <label class="opt" data-tip="로고 사용 규정, 지정 색상(컬러코드), 서체 등이 담긴 문서. 브랜드 톤을 맞추는 기준이 됩니다."><input type="checkbox" name="materials" value="브랜드 가이드라인(CI/BI)">브랜드 가이드라인(CI/BI)</label>
+            </div>
+            <div class="sub" style="margin-top:8px">기타 <input type="text" name="materialEtc" placeholder="직접 입력"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="fs"><legend><span class="n">4</span><span class="t">콘텐츠 유형</span><span class="l"></span></legend>
+          <div class="hint" style="margin:-4px 0 10px">필요한 결과물을 모두 선택하세요. 각 항목에 마우스를 올리면 설명이 나타납니다.</div>
+          <div class="opts">
+            <label class="opt" data-tip="제품의 기능과 장점을 차분히 소개하는 기본 영상입니다. 자사몰 상세페이지·유튜브에 사용하며 1분~2분 30초 분량입니다."><input type="checkbox" name="contentTypes" value="제품 상세 소개 영상">제품 상세 소개 영상 (1분~2분 30초)</label>
+            <label class="opt" data-tip="세로 화면의 짧은 영상입니다. 인스타 릴스·유튜브 쇼츠·틱톡용으로 15~60초 분량이며, 초반 3초에 시선을 잡는 구성이 핵심입니다."><input type="checkbox" name="contentTypes" value="숏폼 콘텐츠">숏폼 (15~60초 / Reels·Shorts·TikTok)</label>
+            <label class="opt" data-tip="포장을 열고 구성품을 하나씩 보여 주는 영상입니다. 신제품 첫 공개나 사은품 구성을 알릴 때 효과적입니다."><input type="checkbox" name="contentTypes" value="언박싱/개봉 리뷰">언박싱 / 개봉 리뷰</label>
+            <label class="opt" data-tip="사용 순서를 단계별로 보여 주는 영상입니다. 설치·시공·조작이 필요한 제품의 문의를 줄여 줍니다."><input type="checkbox" name="contentTypes" value="사용법 튜토리얼/How-to">사용법 튜토리얼 / How-to</label>
+            <label class="opt" data-tip="라이브 방송에서 반응이 좋았던 구간만 잘라 만든 짧은 영상입니다. 새로 촬영하지 않아도 되어 제작 기간이 짧습니다."><input type="checkbox" name="contentTypes" value="라이브 커머스 하이라이트">라이브 커머스 하이라이트 클립</label>
+            <label class="opt" data-tip="광고 집행용 영상입니다. 15초·30초로 길이가 정해져 있고, 마지막에 구매 유도 문구가 들어갑니다."><input type="checkbox" name="contentTypes" value="광고/프로모션 영상">광고 / 프로모션 (15초·30초)</label>
+          </div>
+          <div class="sub" style="margin-top:8px">기타 <input type="text" name="contentEtc" placeholder="직접 입력"></div>
+        </fieldset>
+
+        <fieldset class="fs"><legend><span class="n">5</span><span class="t">촬영 요청</span><span class="l"></span></legend>
+          <div class="opts" style="margin-bottom:12px">
+            <label class="opt" data-tip="새로 촬영이 필요한 경우입니다. 촬영 장소·모델·기법을 아래에 작성해 주세요."><input type="radio" name="shootNeed" value="촬영 필요" checked>촬영 필요</label>
+            <label class="opt" data-tip="이미 있는 영상·사진 소재만으로 편집하는 경우입니다. 선택하면 아래 촬영 항목은 작성하지 않아도 되고, 일정의 희망 촬영일도 비워 둡니다."><input type="radio" name="shootNeed" value="촬영 없음">촬영 없음 (기존 소재 활용)</label>
+          </div>
+
+          <div class="box" id="shootBox">
+            <h4>촬영 장소</h4>
+            <div class="opts">
+              <label class="opt" data-tip="배경이 깔끔한 실내 촬영입니다. 제품이 돋보이고 조명 조절이 쉬워 상세컷·누끼컷에 적합합니다."><input type="checkbox" name="place" value="스튜디오(화이트/그린 배경)">스튜디오 (화이트/그린)</label>
+              <label class="opt" data-tip="제품을 실제로 쓰는 공간(집·현장·매장)에서 촬영합니다. 현실감이 좋지만 이동·섭외 시간이 더 필요합니다."><input type="checkbox" name="place" value="실제 사용 환경(로케이션)">실제 사용 환경 (로케이션)</label>
+            </div>
+            <div class="g g2" style="margin-top:8px">
+              <div class="sub">기타 <input type="text" name="placeEtc"></div>
+              <div class="sub">주소 <input type="text" name="placeAddr"></div>
+            </div>
+
+            <h4 style="margin-top:16px">출연 / 모델</h4>
+            <div class="opts">
+              <label class="opt" data-tip="전문 모델을 섭외합니다. 섭외 기간과 비용이 추가로 들어 최소 1주 전 확정이 필요합니다."><input type="checkbox" name="cast" value="모델 필요">모델 필요</label>
+              <span class="sub">인원 <input type="text" name="castCount" class="w80" placeholder="예: 2명"> 컨셉 <input type="text" name="castConcept"></span>
+              <label class="opt" data-tip="실제 고객이나 직원이 출연합니다. 신뢰도가 높아지지만 초상권 동의서가 필요합니다."><input type="checkbox" name="cast" value="실제 사용자 출연">실제 사용자 출연</label>
+              <label class="opt" data-tip="얼굴 없이 손만 나오는 촬영입니다. 섭외 부담이 없고 제품에 시선이 집중됩니다."><input type="checkbox" name="cast" value="Hands only (제품 중심)">Hands only (제품 중심)</label>
+              <label class="opt" data-tip="사람 없이 제품만 촬영합니다. 가장 빠르고 비용이 적게 듭니다."><input type="checkbox" name="cast" value="출연 없음">출연 없음</label>
+            </div>
+
+            <h4 style="margin-top:16px">특별 촬영 기법</h4>
+            <div class="opts">
+              <label class="opt" data-tip="느리게 재생되는 장면입니다. 액체가 떨어지거나 가루가 날리는 순간을 강조할 때 씁니다."><input type="checkbox" name="tech" value="슬로우모션">슬로우모션</label>
+              <label class="opt" data-tip="아주 가까이 확대해 질감·표면을 보여 줍니다. 소재의 품질을 강조할 때 효과적입니다."><input type="checkbox" name="tech" value="매크로/클로즈업">매크로 / 클로즈업</label>
+              <label class="opt" data-tip="제품을 회전시켜 모든 면을 보여 줍니다. 형태가 중요한 제품에 적합하며 촬영 시간이 더 걸립니다."><input type="checkbox" name="tech" value="360도 회전">360도 회전</label>
+              <label class="opt" data-tip="버튼·개폐부 등 작동 부분을 가까이 촬영합니다. 사용법을 설명할 때 필요합니다."><input type="checkbox" name="tech" value="제품 작동 클로즈업">제품 작동 클로즈업</label>
+              <label class="opt" data-tip="특별한 기법 없이 일반 촬영으로 진행합니다."><input type="checkbox" name="tech" value="없음">없음</label>
+            </div>
+            <div class="sub" style="margin-top:8px">기타 <input type="text" name="techEtc"></div>
+
+            <div style="margin-top:16px"><label class="lb">세트 / 소품 / 컨셉</label>
+              <textarea name="setConcept" placeholder="예: 미니멀 화이트 세트, 실제 주방 세팅, '하루의 시작' 컨셉 등 원하는 분위기를 상세히 적어 주세요."></textarea></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="fs"><legend><span class="n">6</span><span class="t">편집 요청</span><span class="l"></span></legend>
+          <div class="opts" style="margin-bottom:12px">
+            <label class="opt" data-tip="촬영 소재를 편집해 완성 영상으로 만듭니다. 대부분의 요청이 여기에 해당합니다."><input type="radio" name="editNeed" value="편집 필요" checked>편집 필요</label>
+            <label class="opt" data-tip="편집 없이 촬영 원본 파일만 전달받습니다. 부서에서 직접 편집할 때 선택하세요."><input type="radio" name="editNeed" value="편집 없음">편집 없음 (촬영 원본만 전달)</label>
+          </div>
+
+          <div class="box" id="editBox">
+            <div class="g g2">
+              <div><label class="lb">영상 길이 (풀버전)</label>
+                <div class="sub"><input type="text" name="fullMin" class="w80" placeholder="분">분 <input type="text" name="fullSec" class="w80" placeholder="초">초</div></div>
+              <div><label class="lb">숏폼 버전</label>
+                <div class="sub"><input type="text" name="shortSec" class="w120" placeholder="초">초 <span class="hint" style="margin:0">복수 버전 시 명시</span></div></div>
+            </div>
+
+            <h4 style="margin-top:16px">자막 스타일 <span style="font-weight:400;color:var(--muted2);font-size:11px">— 하나만 선택</span></h4>
+            <div class="opts">
+              <label class="opt" data-tip="흰 글씨에 검은 테두리 등 읽기 편한 기본 자막입니다. 정보 전달이 목적일 때 적합합니다."><input type="radio" name="subtitle" value="기본 자막(가독성 위주)">기본 자막 (가독성 위주)</label>
+              <label class="opt" data-tip="글자가 튀어나오거나 색이 바뀌는 자막입니다. 시선을 끌지만 편집 시간이 더 걸립니다."><input type="radio" name="subtitle" value="애니메이션 강조 자막">애니메이션 강조 자막</label>
+              <label class="opt" data-tip="화면 전체에 큰 문구를 배치하는 방식입니다. 소리를 끄고 보는 SNS 영상에 효과적입니다."><input type="radio" name="subtitle" value="온스크린 텍스트 위주">온스크린 텍스트 위주</label>
+              <label class="opt" data-tip="제품명과 핵심 문구만 표시합니다. 영상미를 살리는 감성 영상에 적합합니다."><input type="radio" name="subtitle" value="최소 자막(제품명/포인트만)">최소 자막</label>
+            </div>
+
+            <h4 style="margin-top:16px">BGM / 음향 <span style="font-weight:400;color:var(--muted2);font-size:11px">— 하나만 선택</span></h4>
+            <div class="opts">
+              <label class="opt" data-tip="빠르고 밝은 분위기의 음악입니다. 생활용품·가족 타겟 제품에 잘 어울립니다."><input type="radio" name="bgm" value="밝고 경쾌">밝고 경쾌</label>
+              <label class="opt" data-tip="차분하고 고급스러운 음악입니다. 고가 제품이나 브랜드 이미지 영상에 적합합니다."><input type="radio" name="bgm" value="프리미엄/감성">프리미엄 / 감성</label>
+              <label class="opt" data-tip="요즘 유행하는 리듬감 있는 음악입니다. 숏폼에 주로 사용합니다."><input type="radio" name="bgm" value="트렌디 업비트">트렌디 업비트</label>
+              <label class="opt" data-tip="음악을 넣지 않거나 저작권 문제가 없는 무료 음원만 사용합니다. 광고 심의가 필요한 경우 안전합니다."><input type="radio" name="bgm" value="무음 or 저작권 Free">무음 / 저작권 Free</label>
+              <label class="opt" data-tip="사용할 곡을 직접 지정합니다. 저작권 확인이 필요하므로 아래에 링크를 남겨 주세요."><input type="radio" name="bgm" value="지정 BGM">지정 BGM</label>
+            </div>
+            <div class="sub" style="margin-top:8px">지정 BGM 링크 <input type="text" name="bgmLink"></div>
+
+            <h4 style="margin-top:16px">추가 효과 / CG</h4>
+            <div class="opts">
+              <label class="opt" data-tip="도형·선·글자가 움직이는 그래픽입니다. 기능 설명을 시각적으로 정리할 때 사용하며 제작 기간이 늘어납니다."><input type="checkbox" name="fx" value="모션그래픽">모션그래픽</label>
+              <label class="opt" data-tip="제품을 3D로 만들어 회전시킵니다. 별도 모델링이 필요해 기간과 비용이 가장 많이 듭니다."><input type="checkbox" name="fx" value="제품 3D 회전">제품 3D 회전</label>
+              <label class="opt" data-tip="수치나 비교 내용을 그림과 도표로 표현합니다. 성능 비교를 보여 줄 때 효과적입니다."><input type="checkbox" name="fx" value="아이콘/인포그래픽">아이콘 / 인포그래픽</label>
+              <label class="opt" data-tip="영상의 색감을 보정해 통일된 분위기를 만듭니다. 브랜드 색을 살릴 때 사용합니다."><input type="checkbox" name="fx" value="컬러그레이딩">컬러그레이딩</label>
+            </div>
+            <div class="sub" style="margin-top:8px">기타 <input type="text" name="fxEtc"></div>
+
+            <div class="g g2" style="margin-top:16px">
+              <div><label class="lb">내레이션</label>
+                <div class="opts">
+                  <label class="opt" data-tip="목소리 해설을 넣습니다. 대본 확정과 녹음 시간이 추가로 필요합니다."><input type="radio" name="narration" value="필요">필요</label>
+                  <label class="opt" data-tip="자막과 음악만으로 구성합니다. 제작이 빠르고 SNS 시청 환경에 적합합니다."><input type="radio" name="narration" value="불필요">불필요 (자막+BGM만)</label>
+                </div>
+                <div class="sub" style="margin-top:8px">방식
+                  <select name="narrationBy" class="w120"><option value="">선택</option><option>성우</option><option>AI 음성</option><option>내부 인력</option></select></div>
+              </div>
+              <div><label class="lb">납품 포맷</label>
+                <div class="opts">
+                  <label class="opt" data-tip="가로 영상입니다. 유튜브·자사몰 상세페이지에 사용합니다."><input type="checkbox" name="formats" value="YouTube (16:9)">YouTube 16:9</label>
+                  <label class="opt" data-tip="세로 영상입니다. 인스타그램 릴스 전용 규격입니다."><input type="checkbox" name="formats" value="Instagram Reels (9:16)">Reels 9:16</label>
+                  <label class="opt" data-tip="세로 영상입니다. 틱톡 업로드용이며 화면 아래 UI에 가리지 않도록 여백을 둡니다."><input type="checkbox" name="formats" value="TikTok (9:16)">TikTok 9:16</label>
+                  <label class="opt" data-tip="쿠팡·자사몰·광고 소재용입니다. 정사각형 또는 가로 규격으로 제작합니다."><input type="checkbox" name="formats" value="자사몰/광고 (1:1 or 16:9)">자사몰 / 광고</label>
+                </div>
+                <div class="sub" style="margin-top:8px">기타 <input type="text" name="formatEtc"></div>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="fs"><legend><span class="n">7</span><span class="t">일정 및 납품 조건</span><span class="l"></span></legend>
+          <div class="hint" style="margin:-4px 0 10px">입력한 날짜가 달력에 색상으로 표시됩니다. 1차 편집본 전 영업일 2일은 <b>편집</b>, 최종 납품 전 영업일 1일은 <b>중요 편집</b>으로 자동 추가되며, 주말·공휴일은 건너뜁니다. <b>세 칸 중 최소 하나</b>는 입력해야 저장됩니다.</div>
+          <div class="g g3">
+            <div><label class="lb" style="color:#1B4CB0">희망 촬영일</label><input type="date" name="shootDate"><div class="dowarn" id="wShoot"></div>
+              <div class="hint">촬영이 없으면 비워 두세요.</div></div>
+            <div><label class="lb" style="color:#95590A">1차 편집본 납품</label><input type="date" name="firstDate"><div class="dowarn" id="wFirst"></div></div>
+            <div><label class="lb" style="color:#9E2637">최종 납품일</label><input type="date" name="finalDate"><div class="dowarn" id="wFinal"></div></div>
+          </div>
+          <div class="g g2" style="margin-top:10px">
+            <div><label class="lb">수정 라운드</label><input type="text" name="revision" placeholder="기본 1~2회 (추가 수정 시 별도 협의)"></div>
+            <div><label class="lb">비고 / 특이사항</label><input type="text" name="scheduleNote" placeholder="예: 특정 날짜 전 반드시 완료, 라이브 일정 연동"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="fs"><legend><span class="n">8</span><span class="t">참고 자료 및 레퍼런스</span><span class="l"></span></legend>
+          <div class="g">
+            <div><label class="lb">레퍼런스 영상 링크 / 파일명</label><textarea name="refLinks" placeholder="비슷한 스타일 · 톤앤매너 레퍼런스"></textarea></div>
+            <div class="g g2">
+              <div><label class="lb">브랜드 톤앤매너 가이드라인 파일</label><input type="text" name="refGuide"></div>
+              <div><label class="lb">피드백 담당자 (이름 / 연락처)</label><input type="text" name="feedbackOwner"></div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="fs"><legend><span class="n">9</span><span class="t">기타 요청사항</span><span class="l"></span></legend>
+          <textarea name="etc" style="min-height:80px"></textarea>
+          <div class="g g2" style="margin-top:12px">
+            <div><label class="lb">진행 상태</label>
+              <select name="status"><option>접수대기</option><option>검토중</option><option>촬영예정</option><option>편집중</option><option>완료</option><option>보류</option></select>
+              <div class="hint">새 요청서는 <b>접수대기</b>로 두면 됩니다.</div></div>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+    <div class="mf">
+      <button class="btn" data-close>취소</button>
+      <button class="btn pri" id="btnSave">저장하고 일정에 추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 상세 보기 모달 ============ -->
+<div class="modal" id="viewModal">
+  <div class="sheet">
+    <div class="mh">
+      <h2 id="vTitle">요청서</h2><span class="no" id="vNo"></span>
+      <div class="spacer"></div>
+      <button class="x" data-close>✕</button>
+    </div>
+    <div class="mb" id="vBody"></div>
+    <div class="mf">
+      <button class="btn dgr" id="btnDel">삭제</button>
+      <div class="spacer"></div>
+      <button class="btn" id="btnPrint">인쇄 / PDF 저장</button>
+      <button class="btn pri" id="btnEdit">수정</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 휴무일 관리 모달 ============ -->
+<div class="modal" id="holModal">
+  <div class="sheet sm">
+    <div class="mh"><h2>휴무일 관리</h2><span class="no" id="holYear"></span><div class="spacer"></div><button class="x" data-close>✕</button></div>
+    <div class="mb f">
+      <p class="hint" style="margin:14px 0 12px">주말과 아래 휴무일은 편집 작업일 계산에서 자동으로 제외됩니다. 창립기념일·워크숍 등 회사 휴무일을 직접 추가할 수 있습니다.</p>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input type="date" id="holDate" style="flex:none;width:170px">
+        <input type="text" id="holName" placeholder="휴무 사유 (예: 창립기념일)" style="flex:1">
+        <button class="btn pri" id="holAdd" style="flex:none">추가</button>
+      </div>
+      <div class="hol-list" id="holList"></div>
+    </div>
+    <div class="mf"><button class="btn pri" data-close>닫기</button></div>
+  </div>
+</div>
+
+<!-- ============ 장비 등록 모달 ============ -->
+<div class="modal" id="eqModal">
+  <div class="sheet sm">
+    <div class="mh"><h2 id="eqTitle">장비 등록</h2><div class="spacer"></div><button class="x" data-close>✕</button></div>
+    <div class="mb f">
+      <form id="eqForm" autocomplete="off">
+        <div class="g g2" style="margin-top:14px">
+          <div><label class="lb">관리번호</label><input type="text" name="code" placeholder="예: CAM-001"></div>
+          <div><label class="lb">장비명 <em>*</em></label><input type="text" name="name"></div>
+        </div>
+        <div class="g g2" style="margin-top:10px">
+          <div><label class="lb">모델명 / 규격</label><input type="text" name="model"></div>
+          <div><label class="lb">카테고리</label>
+            <input type="text" name="cat" list="catList" placeholder="목록에서 고르거나 직접 입력">
+            <datalist id="catList"></datalist></div>
+        </div>
+        <div class="g g2" style="margin-top:10px">
+          <div><label class="lb">취득일</label><input type="date" name="buyDate"></div>
+          <div><label class="lb">사용 / 보관 부서</label><input type="text" name="dept" placeholder="예: 콘텐츠제작팀"></div>
+        </div>
+        <div class="g g2" style="margin-top:10px">
+          <div><label class="lb">담당자</label><input type="text" name="owner"></div>
+          <div><label class="lb">현재 상태</label>
+            <select name="state"><option>사용중</option><option>대여중</option><option>수리중</option><option selected>미사용</option><option>폐기예정</option><option>폐기완료</option></select></div>
+        </div>
+        <div class="g g2" style="margin-top:10px">
+          <div><label class="lb">보관 위치</label>
+            <input type="text" name="place" list="placeList" placeholder="예: 3층 장">
+            <datalist id="placeList"></datalist></div>
+          <div><label class="lb">비고</label><input type="text" name="note" placeholder="수리 이력 · 특이사항"></div>
+        </div>
+        <div style="margin-top:10px"><label class="lb">설명</label>
+          <textarea name="desc" style="min-height:70px" placeholder="예: 4K 120fps 촬영 가능. 방수 하우징 별매. 배터리 2개 포함, 완충 시 약 90분 촬영."></textarea>
+          <div class="hint">장비대장 <b>설명</b> 칸에 표시되고, 장비명에 마우스를 올리면 이 내용이 나타납니다.</div></div>
+      </form>
+    </div>
+    <div class="mf"><button class="btn dgr" id="eqDel" hidden>삭제</button><button class="btn" id="eqOpts">항목 관리</button><div class="spacer" style="flex:1"></div><button class="btn" data-close>취소</button><button class="btn pri" id="eqSave">저장</button></div>
+  </div>
+</div>
+
+<!-- ============ 반출 등록 모달 ============ -->
+<div class="modal" id="logModal">
+  <div class="sheet sm">
+    <div class="mh"><h2 id="logTitle">장비 반출 등록</h2><div class="spacer"></div><button class="x" data-close>✕</button></div>
+    <div class="mb f">
+      <form id="logForm" autocomplete="off">
+        <div class="g g2" style="margin-top:14px">
+          <div><label class="lb">장비 <em>*</em></label>
+            <select name="equipId" id="logEquip"></select>
+            <div class="hint" id="logEquipInfo"></div></div>
+          <div><label class="lb">수량</label><input type="text" name="qty" value="1"></div>
+        </div>
+        <div class="g g2" style="margin-top:10px">
+          <div><label class="lb">반출일 <em>*</em></label><input type="date" name="outDate"><div class="dowarn" id="wOut"></div></div>
+          <div><label class="lb">반납 예정일 <em>*</em></label><input type="date" name="dueDate"><div class="dowarn" id="wDue"></div></div>
+        </div>
+        <div class="g g2" style="margin-top:10px">
+          <div><label class="lb">반출 부서</label><input type="text" name="outDept"></div>
+          <div><label class="lb">반출자 성명</label><input type="text" name="outBy"></div>
+        </div>
+        <div style="margin-top:10px"><label class="lb">사용 목적 / 촬영 현장</label><input type="text" name="purpose" placeholder="예: 신제품 상세컷 스튜디오 촬영"></div>
+        <div style="margin-top:10px"><label class="lb">연계 요청서</label>
+          <select name="reqId" id="logReq"><option value="">연결 안 함</option></select>
+          <div class="hint">요청서와 연결하면 상세 화면에서 사용 장비를 함께 확인할 수 있습니다.</div></div>
+        <div class="g g2" style="margin-top:10px">
+          <div><label class="lb">반출 시 장비 상태</label><input type="text" name="outCond" placeholder="예: 이상 없음, 스크래치 있음"></div>
+          <div><label class="lb">확인자</label><input type="text" name="checker"></div>
+        </div>
+        <div class="box" style="margin-top:14px">
+          <h4>반납 처리</h4>
+          <div class="g g2">
+            <div><label class="lb">실제 반납일</label><input type="date" name="returnedDate"></div>
+            <div><label class="lb">반납 시 장비 상태</label><input type="text" name="inCond" placeholder="예: 이상 없음 / 렌즈캡 분실"></div>
+          </div>
+          <div style="margin-top:10px"><label class="lb">비고</label><input type="text" name="note"></div>
+        </div>
+      </form>
+    </div>
+    <div class="mf"><button class="btn dgr" id="logDel" hidden>삭제</button><div class="spacer" style="flex:1"></div><button class="btn" id="logReturn" hidden>오늘 반납 처리</button><button class="btn" data-close>취소</button><button class="btn pri" id="logSave">저장</button></div>
+  </div>
+</div>
+
+<!-- ============ 공유(NAS) 설정 모달 ============ -->
+<div class="modal" id="nasModal">
+  <div class="sheet sm">
+    <div class="mh"><h2>공유 폴더 설정</h2><div class="spacer"></div><button class="x" data-close>✕</button></div>
+    <div class="mb f">
+      <div class="who" style="margin-top:14px">
+        작성자 이름 <input type="text" id="myName" placeholder="예: 홍길동" style="flex:1;padding:6px 10px;border:1px solid var(--line);border-radius:7px;max-width:180px">
+        <button id="saveName">저장</button>
+      </div>
+      <p class="hint" style="margin:8px 0 0">누가 수정했는지 표시하는 데 사용됩니다. 처음 한 번만 입력하면 됩니다.</p>
+
+      <div class="box" style="margin-top:16px">
+        <h4>연결 상태</h4>
+        <div id="nasState" style="font-size:13px">연결되지 않음 · 이 PC에만 저장 중</div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn pri" id="nasPick">NAS 공유 폴더 선택</button>
+          <button class="btn" id="nasSyncNow" hidden>지금 동기화</button>
+          <button class="btn dgr" id="nasOff" hidden>연결 해제</button>
+        </div>
+      </div>
+
+      <div class="box">
+        <h4>사용 방법</h4>
+        <ol style="margin:0;padding-left:20px;font-size:13px;line-height:1.8">
+          <li>이 HTML 파일을 NAS 공유 폴더에 넣고, 각자 자기 PC에서 파일을 엽니다.</li>
+          <li>위 <b>NAS 공유 폴더 선택</b>을 눌러 <b>파일이 들어 있는 그 폴더</b>를 고릅니다.</li>
+          <li>브라우저가 "이 사이트에서 파일을 편집하도록 허용" 을 물으면 <b>편집 허용</b>을 누릅니다.</li>
+          <li>폴더에 <b>촬영요청_공유데이터.json</b> 이 만들어지고, 이후 모든 내용이 그 파일에 저장됩니다.</li>
+        </ol>
+        <p class="hint" style="margin:10px 0 0">15초마다 자동으로 확인해 다른 사람이 바꾼 내용을 가져옵니다. 다음에 열 때는 연결 버튼 한 번만 눌러 주면 됩니다.</p>
+      </div>
+
+      <div class="box" id="nasWarn" style="border-color:#F1C8CF;background:#FDF4F5" hidden>
+        <h4 style="color:#9E2637">이 브라우저에서는 공유 폴더 연결을 쓸 수 없습니다</h4>
+        <p style="margin:0;font-size:13px">Chrome 또는 Microsoft Edge에서 열어 주세요. 그래도 안 되면 보안 정책으로 막힌 경우이므로, 상단 <b>내보내기 / 불러오기</b>로 백업 파일을 주고받는 방식을 사용하세요.</p>
+      </div>
+    </div>
+    <div class="mf"><button class="btn pri" data-close>닫기</button></div>
+  </div>
+</div>
+
+<!-- ============ 담당자 설정 모달 ============ -->
+<div class="modal" id="staffModal">
+  <div class="sheet sm">
+    <div class="mh"><h2>미디어마케팅팀 담당자</h2><div class="spacer"></div><button class="x" data-close>✕</button></div>
+    <div class="mb f">
+      <p class="hint" style="margin:14px 0 0">요청 부서가 문의할 담당자 정보입니다. 담당자가 바뀌면 여기서 수정하세요. <b>공유 폴더에 연결되어 있으면 팀 전체에 함께 반영됩니다.</b></p>
+      <div class="g g2" style="margin-top:14px">
+        <div><label class="lb">담당자 이름</label><input type="text" id="stName" placeholder="예: 최상기"></div>
+        <div><label class="lb">직급 / 직책</label><input type="text" id="stRank" placeholder="예: PD"></div>
+      </div>
+      <div class="g g2" style="margin-top:10px">
+        <div><label class="lb">전화번호</label><input type="text" id="stTel" placeholder="예: 010-1234-5678"></div>
+        <div><label class="lb">내선 번호</label><input type="text" id="stExt" placeholder="예: 205"></div>
+      </div>
+      <div style="margin-top:10px"><label class="lb">이메일</label><input type="text" id="stMail" placeholder="예: media@netform.co.kr"></div>
+      <div style="margin-top:10px"><label class="lb">비고</label><input type="text" id="stNote" placeholder="예: 촬영 문의는 오전에 연락 바랍니다"></div>
+      <div class="hint" id="stMeta" style="margin-top:10px"></div>
+    </div>
+    <div class="mf"><button class="btn" data-close>취소</button><button class="btn pri" id="stSave">저장</button></div>
+  </div>
+</div>
+
+<!-- ============ 장비 항목 관리 모달 ============ -->
+<div class="modal" id="optModal">
+  <div class="sheet sm">
+    <div class="mh"><h2>장비 항목 관리</h2><div class="spacer"></div><button class="x" data-close>✕</button></div>
+    <div class="mb f">
+      <p class="hint" style="margin:14px 0 0">장비를 등록할 때 고를 수 있는 <b>카테고리</b>와 <b>보관 위치</b> 목록입니다. 회사 상황에 맞게 추가하거나 지우세요. 이미 등록된 장비의 값은 여기서 지워도 그대로 유지됩니다.</p>
+
+      <div class="box" style="margin-top:16px">
+        <h4>카테고리</h4>
+        <div style="display:flex;gap:8px"><input type="text" id="optCat" placeholder="예: 드론"><button class="btn pri" id="optCatAdd" style="flex:none">추가</button></div>
+        <div class="hol-list" id="optCatList" style="margin-top:10px"></div>
+      </div>
+
+      <div class="box">
+        <h4>보관 위치</h4>
+        <div style="display:flex;gap:8px"><input type="text" id="optPlace" placeholder="예: 2층 창고"><button class="btn pri" id="optPlaceAdd" style="flex:none">추가</button></div>
+        <div class="hol-list" id="optPlaceList" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn pri" data-close>닫기</button></div>
+  </div>
+</div>
+
+<!-- ============ 홈 문구 수정 모달 ============ -->
+<div class="modal" id="homeModal">
+  <div class="sheet sm">
+    <div class="mh"><h2>홈 화면 문구 수정</h2><div class="spacer"></div><button class="x" data-close>✕</button></div>
+    <div class="mb f">
+      <p class="hint" style="margin:14px 0 0">홈 화면 맨 위에 나오는 제목과 안내문입니다. 공유 폴더에 연결되어 있으면 팀 전체에 함께 반영됩니다.</p>
+      <div style="margin-top:14px"><label class="lb">제목</label><input type="text" id="hmTitle" placeholder="촬영 제작 요청 관리"></div>
+      <div style="margin-top:10px"><label class="lb">안내문 (비워 두면 표시되지 않습니다)</label>
+        <textarea id="hmSub" style="min-height:64px" placeholder="예: 촬영·편집 요청은 최소 5영업일 전에 등록해 주세요."></textarea></div>
+      <div class="hint" id="hmMeta" style="margin-top:10px"></div>
+    </div>
+    <div class="mf"><button class="btn" id="hmReset">기본값으로</button><div class="spacer" style="flex:1"></div><button class="btn" data-close>취소</button><button class="btn pri" id="hmSave">저장</button></div>
+  </div>
+</div>
+
+<!-- ============ 부서 관리 모달 ============ -->
+<div class="modal" id="deptModal">
+  <div class="sheet sm">
+    <div class="mh"><h2>요청부서 관리</h2><div class="spacer"></div><button class="x" data-close>✕</button></div>
+    <div class="mb f">
+      <p class="hint" style="margin:14px 0 0">요청서에서 고를 수 있는 부서 목록입니다. 여기서 정한 색상이 달력 · 목록 · 상세 화면에 함께 적용됩니다. 공유 폴더에 연결되어 있으면 팀 전체에 반영됩니다.</p>
+
+      <div class="box" style="margin-top:14px">
+        <h4>부서 추가</h4>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="color" id="dpColor" value="#2F6FED" title="색상 선택">
+          <input type="text" id="dpName" placeholder="부서명 (예: 서비스운영2팀)" style="flex:1">
+          <button class="btn pri" id="dpAdd" style="flex:none">추가</button>
+        </div>
+      </div>
+
+      <div class="box">
+        <h4>등록된 부서 <span style="font-weight:400;color:var(--muted2);font-size:11px">— 색상이나 이름을 바로 고칠 수 있습니다</span></h4>
+        <div id="dpList"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" id="dpReset">기본 4개 부서로 되돌리기</button><div class="spacer" style="flex:1"></div><button class="btn pri" data-close>닫기</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- 저장소 (localStorage → 실패 시 메모리) ---------- */
+var Store=(function(){
+  try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); return localStorage; }
+  catch(e){ var m={}; return {getItem:function(k){return k in m?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];}}; }
+})();
+var KEY="mmt_requests_v1", DKEY="mmt_draft_v1", HKEY="mmt_holidays_v1", EKEY="mmt_equip_v1", LKEY="mmt_logs_v1";
+
+var EQ_STATES=["사용중","대여중","수리중","미사용","폐기예정","폐기완료"];
+/* 촬영장비대장 초기 데이터 (첨부 템플릿 기준) */
+var EQ_SEED=[
+ {name:"OSMO ACTION6",model:"",cat:"카메라",place:"",note:"현재 위치 모름"},
+ {name:"쌍안경 16배율",model:"TELESCOPE-1",cat:"기타",place:"3층 장",note:""},
+ {name:"짐벌",model:"DJI RS3",cat:"삼각대/지지대",place:"3층 장",note:""},
+ {name:"무선 2ch 마이크",model:"godox movelink2 m2",cat:"음향",place:"3층 장",note:""},
+ {name:"MINI 드론",model:"DJI MINI 4 PRO",cat:"기타",place:"",note:"현재 위치 모름"},
+ {name:"포켓짐벌카메라",model:"DJI POCKET 2",cat:"카메라",place:"3층 장",note:""},
+ {name:"DSLR 카메라",model:"LUMIX S52",cat:"카메라",place:"3층 장",note:""},
+ {name:"24-105 렌즈",model:"24-105 렌즈",cat:"렌즈",place:"3층 장",note:""},
+ {name:"카메라 배터리1",model:"lmix dmw-blk22",cat:"기타",place:"3층 장",note:""},
+ {name:"카메라 배터리2",model:"lmix dmw-blk22",cat:"기타",place:"3층 장",note:""},
+ {name:"DSLR 삼각대",model:"DSLR 삼각대",cat:"삼각대/지지대",place:"3층 장",note:""}
+];
+
+var STATUSES=["접수대기","검토중","촬영예정","편집중","완료","보류"];
+var TYPE={
+  shoot:{label:"촬영",cls:"shoot"},
+  edit:{label:"편집",cls:"edit"},
+  first:{label:"1차",cls:"first"},
+  editkey:{label:"중요편집",cls:"editkey"},
+  final:{label:"최종",cls:"final"},
+  ret:{label:"반납",cls:"ret"}
+};
+var ORDER=["shoot","edit","first","editkey","final","ret"];
+
+/* 대한민국 공휴일 (2026~2027) — 휴무일 관리에서 수정·추가 가능 */
+var HOLIDAYS={
+"2026-01-01":"신정",
+"2026-02-16":"설날 연휴","2026-02-17":"설날","2026-02-18":"설날 연휴",
+"2026-03-01":"삼일절","2026-03-02":"대체공휴일",
+"2026-05-01":"근로자의 날","2026-05-05":"어린이날","2026-05-24":"부처님오신날","2026-05-25":"대체공휴일",
+"2026-06-03":"지방선거","2026-06-06":"현충일",
+"2026-07-17":"제헌절",
+"2026-08-15":"광복절","2026-08-17":"대체공휴일",
+"2026-09-24":"추석 연휴","2026-09-25":"추석","2026-09-26":"추석 연휴",
+"2026-10-03":"개천절","2026-10-05":"대체공휴일","2026-10-09":"한글날",
+"2026-12-25":"성탄절",
+"2027-01-01":"신정",
+"2027-02-06":"설날 연휴","2027-02-07":"설날","2027-02-08":"설날 연휴","2027-02-09":"대체공휴일",
+"2027-03-01":"삼일절",
+"2027-05-01":"근로자의 날","2027-05-03":"대체공휴일","2027-05-05":"어린이날","2027-05-13":"부처님오신날",
+"2027-06-06":"현충일",
+"2027-07-17":"제헌절","2027-07-19":"대체공휴일",
+"2027-08-15":"광복절","2027-08-16":"대체공휴일",
+"2027-09-14":"추석 연휴","2027-09-15":"추석","2027-09-16":"추석 연휴",
+"2027-10-03":"개천절","2027-10-04":"대체공휴일","2027-10-09":"한글날","2027-10-11":"대체공휴일",
+"2027-12-25":"성탄절","2027-12-27":"대체공휴일"
+};
+var customHol={}, removedHol={};
+
+var reqs=[], equips=[], logs=[], cursor=new Date(), selected=null, editingId=null, viewingId=null, draftTimer=null, eqEditId=null, logEditId=null;
+
+/* ---------- 유틸 ---------- */
+function $(s,r){return (r||document).querySelector(s);}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+function pad(n){return n<10?"0"+n:""+n;}
+function ymd(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function today(){return ymd(new Date());}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function fmt(s){ if(!s) return ""; var p=s.split("-"); return p[0]+"."+p[1]+"."+p[2]; }
+function dday(s){ if(!s) return null; var a=new Date(s+"T00:00:00"), b=new Date(today()+"T00:00:00"); return Math.round((a-b)/86400000); }
+function toast(msg){ var t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("on");},2200); }
+function stamp(){ var d=new Date(); $("#savedAt").innerHTML='<i></i>자동 저장됨 · '+pad(d.getHours())+":"+pad(d.getMinutes()); }
+function dow(k){ return new Date(k+"T00:00:00").getDay(); }
+function dowName(k){ return ["일","월","화","수","목","금","토"][dow(k)]; }
+function holName(k){ if(removedHol[k]) return null; if(customHol[k]) return customHol[k]; return HOLIDAYS[k]||null; }
+function isWeekend(k){ var w=dow(k); return w===0||w===6; }
+function isOff(k){ return isWeekend(k)||!!holName(k); }
+function offReason(k){ var h=holName(k); if(h) return h; var w=dow(k); return w===0?"일요일":(w===6?"토요일":null); }
+/* 기준일 이전의 영업일 n개를 가까운 순서로 반환 (주말·공휴일 제외) */
+function workdaysBefore(k,n){
+  var out=[], d=new Date(k+"T00:00:00"), guard=0;
+  while(out.length<n && guard++<90){
+    d.setDate(d.getDate()-1);
+    var key=ymd(d);
+    if(!isOff(key)) out.push(key);
+  }
+  return out;
+}
+function editDays(r){ return r.firstDate?workdaysBefore(r.firstDate,2).slice().reverse():[]; }
+function keyEditDays(r){ return r.finalDate?workdaysBefore(r.finalDate,1):[]; }
+function shortD(k){ var p=k.split("-"); return p[1]+"."+p[2]+"("+dowName(k)+")"; }
+
+/* ---------- 데이터 ---------- */
+function load(){ try{ reqs=JSON.parse(Store.getItem(KEY)||"[]"); }catch(e){ reqs=[]; } if(!Array.isArray(reqs)) reqs=[]; }
+function save(){ Store.setItem(KEY,JSON.stringify(reqs)); stamp(); pushNas(); renderChanges(); if(!$("#homeWrap").hidden) renderHome(); warnUnshared(); }
+function loadEq(){
+  try{ equips=JSON.parse(Store.getItem(EKEY)||"null"); }catch(e){ equips=null; }
+  if(!Array.isArray(equips)){
+    equips=EQ_SEED.map(function(s,i){
+      return {id:"e"+(i+1)+Date.now().toString(36),code:"",name:s.name,model:s.model,cat:s.cat,
+              buyDate:"",dept:"콘텐츠제작팀",owner:"",state:"미사용",place:s.place,note:s.note};
+    });
+    Store.setItem(EKEY,JSON.stringify(equips));
+  }
+  try{ logs=JSON.parse(Store.getItem(LKEY)||"[]"); }catch(e){ logs=[]; }
+  if(!Array.isArray(logs)) logs=[];
+}
+function saveEq(){ Store.setItem(EKEY,JSON.stringify(equips)); Store.setItem(LKEY,JSON.stringify(logs)); stamp(); pushNas(); renderChanges(); if(!$("#homeWrap").hidden) renderHome(); warnUnshared(); }
+function eqById(id){ for(var i=0;i<equips.length;i++) if(equips[i].id===id) return equips[i]; return null; }
+function logById(id){ for(var i=0;i<logs.length;i++) if(logs[i].id===id) return logs[i]; return null; }
+function eqName(l){ var e=eqById(l.equipId); return e?(e.name+(e.model?" ("+e.model+")":"")):(l.equipName||"(삭제된 장비)"); }
+function logState(l){
+  if(l.returnedDate) return "반납완료";
+  if(l.dueDate && l.dueDate < today()) return "연체";
+  return "반출중";
+}
+function isOut(equipId){ for(var i=0;i<logs.length;i++) if(!logs[i]._del && logs[i].equipId===equipId && !logs[i].returnedDate) return true; return false; }
+function nextNo(){
+  var y=new Date().getFullYear(), n=0;
+  reqs.forEach(function(r){ var m=/^REQ-(\d{4})-(\d+)$/.exec(r.reqNo||""); if(m&&+m[1]===y&&+m[2]>n) n=+m[2]; });
+  return "REQ-"+y+"-"+("00"+(n+1)).slice(-3);
+}
+function byId(id){ for(var i=0;i<reqs.length;i++) if(reqs[i].id===id) return reqs[i]; return null; }
+
+/* ---------- 폼 ↔ 객체 ---------- */
+function readForm(){
+  var f=$("#reqForm"), o={};
+  var dv=$("#deptSel").value;
+  $$("input,textarea,select",f).forEach(function(el){
+    var n=el.name; if(!n) return;
+    if(el.type==="checkbox"){ if(!Array.isArray(o[n])) o[n]=[]; if(el.checked) o[n].push(el.value); }
+    else if(el.type==="radio"){ if(el.checked) o[n]=el.value; else if(!(n in o)) o[n]=""; }
+    else o[n]=el.value.trim();
+  });
+  o.dept=(dv==="__etc")?$("#deptEtc").value.trim():dv;
+  delete o.deptEtc;
+  return o;
+}
+function fillForm(o){
+  var f=$("#reqForm"); f.reset();
+  $$("input,textarea,select",f).forEach(function(el){
+    var n=el.name; if(!n||!o||!(n in o)) return;
+    var v=o[n];
+    if(el.type==="checkbox") el.checked=Array.isArray(v)&&v.indexOf(el.value)>-1;
+    else if(el.type==="radio") el.checked=(v===el.value);
+    else el.value=v==null?"":v;
+  });
+}
+
+/* ---------- 이벤트 인덱스 ---------- */
+function passFilter(r){
+  if(r._del) return false;
+  var q=$("#fq").value.trim().toLowerCase();
+  if(q){ var hay=[r.projectName,r.prodName,r.reqName,r.dept,r.reqNo].join(" ").toLowerCase(); if(hay.indexOf(q)<0) return false; }
+  var s=$("#fStatus").value; if(s&&r.status!==s) return false;
+  var p=$("#fPri").value; if(p&&r.priority!==p) return false;
+  var d=$("#fDept").value; if(d&&r.dept!==d) return false;
+  return true;
+}
+function eventMap(){
+  var map={};
+  function put(d,t,r,l){ if(!d) return; (map[d]=map[d]||[]).push({type:t,req:r,log:l}); }
+  reqs.filter(passFilter).forEach(function(r){
+    put(r.shootDate,"shoot",r);
+    put(r.firstDate,"first",r);
+    put(r.finalDate,"final",r);
+    editDays(r).forEach(function(d){ put(d,"edit",r); });      /* 1차 편집본 전 영업일 2일 */
+    keyEditDays(r).forEach(function(d){ put(d,"editkey",r); }); /* 최종 납품 전 영업일 1일 */
+  });
+  /* 미반납 장비의 반납 예정일 */
+  var q=$("#fq").value.trim().toLowerCase();
+  logs.forEach(function(l){
+    if(l._del||l.returnedDate||!l.dueDate) return;
+    if(q && [eqName(l),l.outBy,l.outDept,l.purpose].join(" ").toLowerCase().indexOf(q)<0) return;
+    put(l.dueDate,"ret",null,l);
+  });
+  Object.keys(map).forEach(function(k){
+    /* 같은 요청이 같은 날 편집·중요편집 중복이면 중요편집만 남김 */
+    var hasKey={};
+    map[k].forEach(function(e){ if(e.type==="editkey") hasKey[e.req.id]=1; });
+    map[k]=map[k].filter(function(e){ return !(e.type==="edit"&&hasKey[e.req.id]); });
+    map[k].sort(function(a,b){ return ORDER.indexOf(a.type)-ORDER.indexOf(b.type); });
+  });
+  return map;
+}
+
+/* ---------- 일정 종류 아이콘 (파일에 내장된 SVG) ---------- */
+function svg(inner){
+  return '<span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" '+
+         'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+inner+'</svg></span>';
+}
+var ICON={
+  /* 촬영 — 카메라 */
+  shoot: svg('<rect x="1.5" y="4.6" width="13" height="9.4" rx="1.8"/><path d="M5.6 4.6 6.7 2.5h2.6l1.1 2.1"/><circle cx="8" cy="9.3" r="2.5"/>'),
+  /* 편집 — 가위 */
+  edit: svg('<circle cx="4" cy="12.1" r="1.9"/><circle cx="12" cy="12.1" r="1.9"/><path d="M5.35 10.75 12.6 2.6"/><path d="M10.65 10.75 3.4 2.6"/>'),
+  /* 1차 편집본 — 문서 */
+  first: svg('<path d="M3.6 1.9h5.2l3.6 3.6v8.6H3.6z"/><path d="M8.8 1.9v3.6h3.6"/><path d="M5.9 9h4.2M5.9 11.3h2.9"/>'),
+  /* 중요 편집 — 경고 */
+  editkey: svg('<path d="M8 2.1 14.7 13.7H1.3z"/><path d="M8 6.3v3.3"/><path d="M8 11.7h.01" stroke-width="2"/>'),
+  /* 최종 납품 — 깃발 */
+  final: svg('<path d="M3.6 14.2V2"/><path d="M3.6 2.7h8.9l-2.1 2.8 2.1 2.8H3.6z"/>'),
+  /* 반납 — 되돌림 화살표 */
+  ret: svg('<path d="M5.9 2.9 2.5 6.2l3.4 3.3"/><path d="M2.5 6.2h6.9a3.9 3.9 0 0 1 0 7.8H6.2"/>')
+};
+
+/* ---------- 달력 ---------- */
+function chipHtml(e){
+  if(e.type==="ret"){
+    var l=e.log, ls=logState(l);
+    return '<div class="ev ret" data-log="'+l.id+'" title="'+esc("반납 예정 · "+eqName(l)+" · "+(l.outBy||""))+'">'+
+      '<b>'+ICON.ret+'반납</b><span class="nm">'+esc(eqName(l))+'</span><span class="st st-'+ls+'">'+ls+'</span></div>';
+  }
+  var r=e.req, done=r.status==="완료", st=r.status||"접수대기";
+  return '<div class="ev '+(done?"done":TYPE[e.type].cls)+'" data-id="'+r.id+'" title="'+esc(TYPE[e.type].label+" · "+(r.projectName||"")+" · "+(r.dept||"부서 미기재")+" · "+st)+'">'+
+    '<b>'+(ICON[e.type]||"")+TYPE[e.type].label+'</b>'+deptDot(r.dept)+'<span class="nm">'+esc(r.projectName||"(제목 없음)")+'</span>'+
+    (r.priority==="긴급"&&!done?'<span class="urg"></span>':'')+
+    '<span class="st s-'+esc(st)+'">'+esc(st)+'</span></div>';
+}
+
+function renderCalendar(){
+  var y=cursor.getFullYear(), m=cursor.getMonth();
+  $("#mTitle").textContent=y+". "+pad(m+1);
+  $("#mSub").textContent=["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"][m];
+
+  var map=eventMap(), grid=$("#grid"); grid.innerHTML="";
+  var first=new Date(y,m,1), start=new Date(y,m,1-first.getDay());
+  var cnt={shoot:0,edit:0,first:0,editkey:0,final:0};
+
+  for(var i=0;i<42;i++){
+    var d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
+    var key=ymd(d), evs=map[key]||[], out=d.getMonth()!==m;
+    if(!out) evs.forEach(function(e){ cnt[e.type]++; });
+    var hn=holName(key);
+
+    var cell=document.createElement("div");
+    cell.className="day"+(out?" out":"")+(evs.length?" hit":"")+(key===today()?" today":"")+(key===selected?" sel":"")+
+                   (d.getDay()===0?" sun":"")+(d.getDay()===6?" sat":"")+(isOff(key)?" off":"");
+    cell.setAttribute("data-date",key);
+
+    var html='<span class="dnum">'+d.getDate()+'</span>'+(hn?'<span class="hname">'+esc(hn)+'</span>':'')+'<div class="evs">';
+    evs.slice(0,3).forEach(function(e){ html+=chipHtml(e); });
+    if(evs.length>3) html+='<div class="more">+'+(evs.length-3)+'건 더보기</div>';
+    html+='</div>';
+    cell.innerHTML=html;
+    grid.appendChild(cell);
+
+    if(i>=34 && new Date(start.getFullYear(),start.getMonth(),start.getDate()+i+1).getMonth()!==m) break;
+  }
+
+  $("#stShoot").textContent=cnt.shoot; $("#stEdit").textContent=cnt.edit+cnt.editkey;
+  $("#stFirst").textContent=cnt.first; $("#stFinal").textContent=cnt.final;
+}
+
+/* ---------- 사이드 ---------- */
+var BARC={shoot:"--ink",edit:"--ink3",first:"--ink",editkey:"--final",final:"--final",ret:"--done"};
+function itemHtml(e){
+  if(e.type==="ret"){
+    var l=e.log, ls=logState(l);
+    return '<div class="item" data-log="'+l.id+'"><span class="bar" style="background:#0E8F9C"></span><div style="min-width:0">'+
+      '<div class="tt">'+esc(eqName(l))+'</div>'+
+      '<div class="mm">반납 예정 · '+esc(l.outBy||l.outDept||"")+' · '+ls+'</div></div></div>';
+  }
+  var r=e.req, color=r.status==="완료"?"var(--done)":"var("+BARC[e.type]+")";
+  return '<div class="item" data-id="'+r.id+'">'+
+    '<span class="bar" style="background:'+color+'"></span><div style="min-width:0">'+
+    '<div class="tt">'+esc(r.projectName||"(제목 없음)")+'</div>'+
+    '<div class="mm" style="display:flex;align-items:center;gap:4px"><span class="lgico" style="width:12px;height:12px">'+(ICON[e.type]||"")+'</span>'+TYPE[e.type].label+' · '+deptSpan(r.dept)+' · '+esc(r.status||"")+'</div>'+
+    '</div></div>';
+}
+function renderSide(){
+  var map=eventMap();
+  var box=$("#dayList");
+  if(!selected){ $("#selTitle").textContent="선택한 날짜"; $("#selCount").textContent=""; box.innerHTML='<div class="empty">달력에서 날짜를 선택하세요.</div>'; }
+  else{
+    var evs=map[selected]||[];
+    $("#selTitle").textContent=fmt(selected);
+    $("#selCount").textContent=evs.length?evs.length+"건":"";
+    box.innerHTML=evs.length? '<div style="padding:6px">'+evs.map(itemHtml).join("")+'</div>'
+      : '<div class="empty">이 날짜에 등록된 일정이 없습니다.<br>상단 <b>+ 새 요청서</b>로 추가하세요.</div>';
+  }
+
+  var soon=[];
+  reqs.filter(passFilter).forEach(function(r){
+    if(r.status==="완료") return;
+    [["shoot",r.shootDate],["first",r.firstDate],["final",r.finalDate]].forEach(function(p){
+      var dd=dday(p[1]); if(dd!==null&&dd>=0&&dd<=7) soon.push({type:p[0],req:r,d:p[1],dd:dd});
+    });
+  });
+  soon.sort(function(a,b){return a.dd-b.dd;});
+  var eqSoon=logs.filter(function(l){ var dd=dday(l.dueDate); return !l._del && !l.returnedDate && dd!==null && dd<=7; })
+                 .sort(function(a,b){ return (a.dueDate<b.dueDate?-1:1); });
+  $("#soonList").innerHTML=(soon.length||eqSoon.length)? '<div style="padding:6px">'+soon.slice(0,8).map(function(e){
+      return '<div class="item" data-id="'+e.req.id+'"><span class="bar" style="background:var('+BARC[e.type]+')"></span>'+
+      '<div style="min-width:0"><div class="tt">'+esc(e.req.projectName||"(제목 없음)")+'</div>'+
+      '<div class="mm">'+TYPE[e.type].label+' · '+fmt(e.d)+' · <b style="color:var(--final)">D'+(e.dd===0?"-DAY":"-"+e.dd)+'</b></div></div></div>';
+    }).join("")+eqSoon.slice(0,6).map(function(l){
+      var dd=dday(l.dueDate), ls=logState(l);
+      return '<div class="item" data-log="'+l.id+'"><span class="bar" style="background:#0E8F9C"></span>'+
+      '<div style="min-width:0"><div class="tt">'+esc(eqName(l))+'</div>'+
+      '<div class="mm">반납 '+fmt(l.dueDate)+' · <b style="color:var(--final)">'+(ls==="연체"?"연체 "+(-dd)+"일":"D"+(dd===0?"-DAY":"-"+dd))+'</b></div></div></div>';
+    }).join("")+'</div>' : '<div class="empty">임박한 납품 · 반납 일정이 없습니다.</div>';
+}
+
+/* ---------- 목록 ---------- */
+function renderList(){
+  var rows=reqs.filter(passFilter).slice().sort(function(a,b){
+    return (b.finalDate||b.shootDate||"")<(a.finalDate||a.shootDate||"")?-1:1;
+  });
+  $("#listBody").innerHTML=rows.length? rows.map(function(r){
+    var pk=r.priority==="협의 필요"?"협의":(r.priority||"일반");
+    return '<tr data-id="'+r.id+'"><td class="no">'+esc(r.reqNo||"")+'</td>'+
+      '<td><b>'+esc(r.projectName||"(제목 없음)")+'</b></td><td>'+deptBadge(r.dept)+'</td>'+
+      '<td><span class="badge b-'+pk+'">'+esc(r.priority||"")+'</span></td>'+
+      '<td class="dt">'+fmt(r.shootDate)+'</td><td class="dt">'+fmt(r.finalDate)+'</td>'+
+      '<td><span class="badge s-'+esc(r.status||"접수대기")+'">'+esc(r.status||"접수대기")+'</span></td></tr>';
+  }).join("") : '<tr><td colspan="7" style="text-align:center;color:var(--muted2);padding:34px">조건에 맞는 요청서가 없습니다.</td></tr>';
+}
+
+function renderFilters(){
+  var dset={}; depts.forEach(function(d){ dset[d.name]=1; });
+  reqs.forEach(function(r){ if(!r._del && r.dept) dset[r.dept]=1; });
+  var sd=$("#fDept"), cur=sd.value;
+  sd.innerHTML='<option value="">요청부서 전체</option>'+Object.keys(dset).sort().map(function(d){return '<option>'+esc(d)+'</option>';}).join("");
+  sd.value=cur;
+  if($("#fStatus").options.length<2){
+    $("#fStatus").innerHTML='<option value="">상태 전체</option>'+STATUSES.map(function(s){return '<option>'+s+'</option>';}).join("");
+  }
+}
+function renderAll(){ renderFilters(); renderCalendar(); renderSide(); renderList(); renderTypeLegend(); renderDeptLegend(); }
+
+/* ---------- 장비 ---------- */
+function eqMatch(txt){
+  var q=$("#eqQ").value.trim().toLowerCase();
+  return !q || txt.toLowerCase().indexOf(q)>-1;
+}
+function renderReg(){
+  var rows=equips.filter(function(e){ return !e._del && eqMatch([e.name,e.model,e.code,e.cat,e.owner,e.place,e.note].join(" ")); });
+  $("#regBody").innerHTML=rows.length? rows.map(function(e,i){
+    var out=isOut(e.id);
+    return '<tr data-eq="'+e.id+'"><td class="no">'+esc(e.code||"—")+'</td>'+
+      '<td><b'+(e.desc?' class="eqname" data-tip="'+esc(e.desc)+'"':'')+'>'+esc(e.name)+'</b>'+(out?' <span class="badge st-반출중">반출중</span>':'')+'</td>'+
+      '<td>'+esc(e.model||"")+'</td><td>'+esc(e.cat||"")+'</td><td>'+esc(e.dept||"")+'</td><td>'+esc(e.owner||"")+'</td>'+
+      '<td>'+(out?'<span class="badge e-대여중">대여중 (반출)</span>':
+        '<select class="stsel e-'+esc(e.state||"미사용")+'" data-st="'+e.id+'">'+
+        EQ_STATES.map(function(v){ return '<option'+(v===(e.state||"미사용")?" selected":"")+'>'+v+'</option>'; }).join("")+'</select>')+'</td>'+
+      '<td>'+esc(e.place||"")+'</td>'+
+      '<td style="color:var(--muted);font-size:12px">'+esc(e.note||"")+'</td>'+
+      '<td class="dcell">'+(e.desc?'<span class="dtxt">'+esc(e.desc)+'</span>':'<span class="dnone">—</span>')+'</td>'+
+      '<td style="text-align:right"><button class="mini" data-edit="'+e.id+'">설정</button></td></tr>';
+  }).join("") : '<tr><td colspan="11" style="text-align:center;color:var(--muted2);padding:34px">등록된 장비가 없습니다.</td></tr>';
+}
+function renderLogs(){
+  var rows=logs.filter(function(l){ return !l._del && eqMatch([eqName(l),l.outBy,l.outDept,l.purpose,l.checker].join(" ")); })
+               .slice().sort(function(a,b){ return (b.outDate||"")<(a.outDate||"")?-1:1; });
+  $("#logBody").innerHTML=rows.length? rows.map(function(l){
+    var ls=logState(l), r=l.reqId?byId(l.reqId):null;
+    return '<tr data-log="'+l.id+'"><td class="dt">'+fmt(l.outDate)+'</td>'+
+      '<td><b'+((eqById(l.equipId)&&eqById(l.equipId).desc)?' class="eqname" data-tip="'+esc(eqById(l.equipId).desc)+'"':'')+'>'+esc(eqName(l))+'</b>'+(r?'<br><span style="font-size:11px;color:var(--muted)">'+esc(r.projectName||"")+'</span>':'')+'</td>'+
+      '<td>'+esc(l.qty||"1")+'</td><td>'+esc([l.outDept,l.outBy].filter(Boolean).join(" / "))+'</td>'+
+      '<td style="font-size:12px;color:var(--muted)">'+esc(l.purpose||"")+'</td>'+
+      '<td class="dt">'+fmt(l.dueDate)+'</td><td class="dt">'+(l.returnedDate?fmt(l.returnedDate):"—")+'</td>'+
+      '<td><span class="badge st-'+ls+'">'+ls+'</span></td>'+
+      '<td>'+(l.returnedDate?'':'<button class="mini go" data-ret="'+l.id+'">반납</button>')+'</td></tr>';
+  }).join("") : '<tr><td colspan="9" style="text-align:center;color:var(--muted2);padding:34px">반출 기록이 없습니다. 우측 상단 <b>+ 반출 등록</b>으로 추가하세요.</td></tr>';
+}
+/* 실제 상태 = 반출 중이면 '대여중', 아니면 장비대장에 입력된 상태 (폐기 건은 그대로) */
+function effState(e){
+  var st=e.state||"";
+  if(EQ_STATES.indexOf(st)<0) st="미사용";
+  if(st==="폐기완료"||st==="폐기예정") return st;
+  return isOut(e.id)?"대여중":st;
+}
+function renderSum(){
+  var live=equips.filter(function(e){ return !e._del; });
+  var total=live.length, by={}, blank=0;
+  EQ_STATES.forEach(function(s){ by[s]={n:0,ex:[]}; });
+  live.forEach(function(e){
+    if(!e.state||EQ_STATES.indexOf(e.state)<0) blank++;
+    var s=by[effState(e)]; s.n++; if(s.ex.length<3) s.ex.push(e.name);
+  });
+  var out=logs.filter(function(l){ return !l._del && !l.returnedDate; }).length;
+  var over=logs.filter(function(l){ var d=dday(l.dueDate); return !l._del && !l.returnedDate && d!==null && d<0; }).length;
+
+  $("#sumGrid").innerHTML=EQ_STATES.map(function(s){
+    var d=by[s], pct=total?Math.round(d.n/total*100):0;
+    return '<div class="sumcard sc-'+s+'"><span class="pct">'+pct+'%</span><b>'+d.n+'</b><span>'+s+
+      (s==="대여중"?' <span style="font-size:9.5px;color:var(--muted2)">자동</span>':'')+'</span>'+
+      '<span class="ex">'+(d.ex.length?esc(d.ex.join(", ")):"—")+'</span></div>';
+  }).join("")+'<div class="sumcard" style="border-top-color:var(--ink)"><span class="pct">100%</span><b>'+total+'</b><span>전체 보유</span>'+
+    '<span class="ex">반출 중 '+out+'건'+(over?' · <b style="color:var(--final)">연체 '+over+'건</b>':'')+'</span></div>';
+
+  $("#sumNote").innerHTML='<b>대여중</b>은 반출입 일지의 미반납 건을 기준으로 <b>자동 집계</b>됩니다. 반출을 등록하면 즉시 반영되고, 반납 처리하면 원래 상태로 돌아갑니다. 나머지 상태는 장비대장의 <b>현재 상태</b> 값을 그대로 사용합니다.'+
+    (blank?'<br><span style="color:#9E2637">현재 상태가 입력되지 않은 장비가 <b>'+blank+'대</b> 있어 <b>미사용</b>으로 집계됩니다. 장비대장 탭에서 실제 상태로 바꿔 주세요.</span>':'');
+}
+function renderEq(){ renderReg(); renderLogs(); renderSum(); }
+
+function openEq(id){
+  eqEditId=id||null;
+  var f=$("#eqForm");
+  f.reset();
+  $("#eqDel").hidden=!id;
+  $("#eqTitle").textContent=id?"장비 정보 수정":"장비 등록";
+  if(id){
+    var e=eqById(id);
+    $$("input,select,textarea",f).forEach(function(el){ if(el.name&&e[el.name]!==undefined) el.value=e[el.name]||""; });
+  }
+  open($("#eqModal"));
+}
+function openLog(id){
+  logEditId=id||null;
+  var f=$("#logForm");
+  f.reset();
+  $("#logDel").hidden=!id;
+  $("#logEquip").innerHTML=equips.filter(function(e){ return !e._del; }).map(function(e){
+    return '<option value="'+e.id+'">'+esc(e.name+(e.model?" · "+e.model:""))+(isOut(e.id)?" [반출중]":"")+'</option>';
+  }).join("");
+  $("#logReq").innerHTML='<option value="">연결 안 함</option>'+reqs.filter(function(r){ return !r._del; }).map(function(r){
+    return '<option value="'+r.id+'">'+esc((r.reqNo||"")+" "+(r.projectName||""))+'</option>';
+  }).join("");
+  if(id){
+    var l=logById(id);
+    $$("input,select",f).forEach(function(el){ if(el.name&&l[el.name]!==undefined) el.value=l[el.name]||""; });
+    $("#logTitle").textContent="반출 기록 수정";
+    $("#logReturn").hidden=!!l.returnedDate;
+  }else{
+    $("[name=outDate]",f).value=selected||today();
+    $("[name=qty]",f).value="1";
+    $("#logTitle").textContent="장비 반출 등록";
+    $("#logReturn").hidden=true;
+  }
+  logHints();
+  open($("#logModal"));
+}
+function logHints(){
+  var id=$("#logEquip").value, e=eqById(id);
+  $("#logEquipInfo").textContent=e?("보관 위치: "+(e.place||"미지정")+" · 상태: "+(e.state||"")+(isOut(id)?" · 현재 반출중":"")):"";
+  var o=$("[name=outDate]",$("#logForm")).value, d=$("[name=dueDate]",$("#logForm")).value;
+  $("#wOut").innerHTML=o&&isOff(o)?'<div class="dowarn">⚠ '+esc(offReason(o))+' · 휴무일</div>':"";
+  $("#wDue").innerHTML=d&&isOff(d)?'<div class="dowarn">⚠ '+esc(offReason(d))+' · 휴무일</div>':"";
+}
+
+/* ---------- 상세 ---------- */
+function row(k,v){ return '<dt>'+k+'</dt><dd>'+esc(v||"")+'</dd>'; }
+function rowHtml(k,html){ return '<dt>'+k+'</dt><dd>'+html+'</dd>'; }
+function deptSpan(name){
+  if(!name) return "부서 미기재";
+  var c=deptColor(name);
+  return c?'<b style="color:'+c+'">'+esc(name)+'</b>':esc(name);
+}
+function join(a,etc){ var arr=(a||[]).slice(); if(etc) arr.push("기타: "+etc); return arr.join(", "); }
+function detailHtml(r,forPrint){
+  var h="";
+  h+='<div class="dv"><h4>1. 기본 정보</h4><dl class="dl">'+
+     rowHtml("요청부서",deptBadge(r.dept))+row("요청자",[r.reqName,r.reqRank,r.reqTel].filter(Boolean).join(" · "))+
+     row("작성일",fmt(r.writeDate))+row("프로젝트명",r.projectName)+row("우선순위",r.priority)+'</dl></div>';
+  h+='<div class="dv"><h4>2. 프로젝트 개요</h4><dl class="dl">'+
+     row("제작 목적",r.purpose)+row("기대 효과",r.kpi)+row("주요 타겟",r.target)+row("핵심 메시지",r.message)+'</dl></div>';
+  h+='<div class="dv"><h4>3. 제품 정보</h4><dl class="dl">'+
+     row("제품명",r.prodName)+row("카테고리",r.prodCat)+
+     row("주요 특징 / USP",[r.usp1,r.usp2,r.usp3].filter(Boolean).map(function(v,i){return (i+1)+". "+v;}).join("\n"))+
+     row("제품 상세 설명",r.prodEtc)+
+     row("제공 자료",join(r.materials,r.materialEtc)+(r.materialQty?" (실물 수량: "+r.materialQty+")":""))+'</dl></div>';
+  h+='<div class="dv"><h4>4. 콘텐츠 유형</h4><dl class="dl">'+
+     row("요청 콘텐츠",join(r.contentTypes,r.contentEtc))+'</dl></div>';
+  var noShoot=r.shootNeed==="촬영 없음";
+  h+='<div class="dv"><h4>5. 촬영 요청</h4><dl class="dl">'+row("촬영 여부",r.shootNeed||"촬영 필요")+
+     (noShoot?row("안내","기존 소재를 활용하며 새 촬영은 진행하지 않습니다."):
+      row("촬영 장소",join(r.place,r.placeEtc)+(r.placeAddr?" / 주소: "+r.placeAddr:""))+
+      row("출연 / 모델",join(r.cast,"")+(r.castCount?" (인원 "+r.castCount+")":"")+(r.castConcept?" 컨셉: "+r.castConcept:""))+
+      row("특별 촬영 기법",join(r.tech,r.techEtc))+row("세트 / 소품 / 컨셉",r.setConcept))+'</dl></div>';
+  var noEdit=r.editNeed==="편집 없음";
+  h+='<div class="dv"><h4>6. 편집 요청</h4><dl class="dl">'+row("편집 여부",r.editNeed||"편집 필요")+
+     (noEdit?row("안내","촬영 원본 파일만 전달합니다."):
+      row("영상 길이",(r.fullMin||r.fullSec?("풀버전 "+(r.fullMin||0)+"분 "+(r.fullSec||0)+"초"):"")+(r.shortSec?" / 숏폼 "+r.shortSec+"초":""))+
+      row("자막 스타일",r.subtitle)+row("BGM / 음향",(r.bgm||"")+(r.bgmLink?" ("+r.bgmLink+")":""))+
+      row("추가 효과 / CG",join(r.fx,r.fxEtc))+row("내레이션",(r.narration||"")+(r.narrationBy?" · "+r.narrationBy:""))+
+      row("납품 포맷",join(r.formats,r.formatEtc)))+'</dl></div>';
+  h+='<div class="dv"><h4>7. 일정 및 납품 조건</h4><dl class="dl">'+
+     row("희망 촬영일",fmt(r.shootDate))+
+     row("편집 작업일 (자동)",editDays(r).map(shortD).join(", "))+
+     row("1차 편집본 납품",fmt(r.firstDate))+
+     row("중요 편집일 (자동)",keyEditDays(r).map(shortD).join(", "))+
+     row("최종 납품일",fmt(r.finalDate))+
+     row("수정 라운드",r.revision)+row("비고 / 특이사항",r.scheduleNote)+'</dl></div>';
+  h+='<div class="dv"><h4>8. 참고 자료</h4><dl class="dl">'+
+     row("레퍼런스",r.refLinks)+row("가이드라인 파일",r.refGuide)+row("피드백 담당자",r.feedbackOwner)+'</dl></div>';
+  h+='<div class="dv"><h4>9. 기타 요청사항</h4><dl class="dl">'+row("내용",r.etc)+'</dl></div>';
+  var used=logs.filter(function(l){ return !l._del && l.reqId===r.id; });
+  if(used.length){
+    h+='<div class="dv"><h4>사용 장비 (반출입 일지)</h4><dl class="dl">'+used.map(function(l){
+      return row(eqName(l),"반출 "+fmt(l.outDate)+" · 반납예정 "+fmt(l.dueDate)+(l.returnedDate?" · 반납완료 "+fmt(l.returnedDate):" · "+logState(l))+(l.outBy?" · "+l.outBy:""));
+    }).join("")+'</dl></div>';
+  }
+  if(forPrint){
+    h+='<div class="sign"><div><b>요청 부서</b>'+esc(r.dept||"")+'<br>'+esc(r.reqName||"")+'</div>'+
+       '<div><b>미디어마케팅팀 담당</b>'+esc(staffLine()||"미지정")+'</div>'+
+       '<div><b>최근 수정</b>'+esc(r.updatedBy||"")+'<br>'+esc(fmt((r.updatedAt||"").slice(0,10)))+'</div></div>';
+  }else if(r.updatedBy){
+    h+='<div class="dv"><h4>기록</h4><dl class="dl">'+row("최근 수정",r.updatedBy+" · "+relTime(r.updatedAt))+'</dl></div>';
+  }
+  return h;
+}
+function openView(id){
+  var r=byId(id); if(!r) return;
+  viewingId=id;
+  $("#vTitle").textContent=r.projectName||"(제목 없음)";
+  $("#vNo").textContent=r.reqNo||"";
+  var pk=r.priority==="협의 필요"?"협의":(r.priority||"일반");
+  var head='<div class="statusrow">'+
+    '<span class="badge b-'+pk+'">'+esc(r.priority||"")+'</span>'+
+    deptBadge(r.dept)+'<span style="font-size:12.5px;color:var(--muted)">'+(r.reqName?esc(r.reqName):"")+'</span>'+
+    '<div class="spacer" style="flex:1"></div>'+
+    '<label style="font-size:12px;color:var(--muted)">상태</label>'+
+    '<select id="vStatus">'+STATUSES.map(function(s){return '<option'+(s===r.status?" selected":"")+'>'+s+'</option>';}).join("")+'</select></div>'+
+    '<div class="keydates">'+
+      '<div class="kd shoot"><span>희망 촬영일</span><b'+(r.shootDate?"":' class="none"')+'>'+(fmt(r.shootDate)||"미정")+'</b>'+
+        (r.shootDate&&isOff(r.shootDate)?'<span style="color:var(--final);font-weight:600">⚠ '+esc(offReason(r.shootDate))+'</span>':'')+'</div>'+
+      '<div class="kd first"><span>1차 편집본</span><b'+(r.firstDate?"":' class="none"')+'>'+(fmt(r.firstDate)||"미정")+'</b>'+
+        (r.firstDate?'<span style="color:#4C33C4">편집 '+editDays(r).map(shortD).join(", ")+'</span>':'')+'</div>'+
+      '<div class="kd final"><span>최종 납품</span><b'+(r.finalDate?"":' class="none"')+'>'+(fmt(r.finalDate)||"미정")+'</b>'+
+        (r.finalDate?'<span style="color:var(--final);font-weight:600">중요 편집 '+keyEditDays(r).map(shortD).join(", ")+'</span>':'')+'</div>'+
+    '</div>';
+  $("#vBody").innerHTML=head+detailHtml(r,false);
+  $("#vStatus").addEventListener("change",function(){ r.status=this.value; touch(r); save(); renderAll(); toast("상태를 "+r.status+"(으)로 변경했습니다."); });
+  open($("#viewModal"));
+}
+
+/* ---------- 사용자 / 동기화 ---------- */
+var NKEY="mmt_me_v1", DATAFILE="촬영요청_공유데이터.json";
+var nas={dir:null,file:null,lastMod:0,timer:null,busy:false,syncAt:null};
+function me(){ return Store.getItem(NKEY)||""; }
+function touch(o){ o.updatedAt=new Date().toISOString(); o.updatedBy=me()||"이름 미설정"; return o; }
+function tsOf(o){ return o&&o.updatedAt?o.updatedAt:""; }
+function relTime(iso){
+  if(!iso) return "";
+  var s=Math.floor((Date.now()-new Date(iso).getTime())/1000);
+  if(s<60) return "방금 전";
+  if(s<3600) return Math.floor(s/60)+"분 전";
+  if(s<86400) return Math.floor(s/3600)+"시간 전";
+  var d=new Date(iso);
+  return (d.getMonth()+1)+"."+d.getDate()+" "+pad(d.getHours())+":"+pad(d.getMinutes());
+}
+/* id 기준 병합 — updatedAt이 최신인 쪽이 이깁니다 (삭제 표시 포함) */
+function mergeList(local,remote){
+  var m={}, changed=0;
+  local.forEach(function(x){ if(x&&x.id) m[x.id]=x; });
+  (remote||[]).forEach(function(x){
+    if(!x||!x.id) return;
+    var cur=m[x.id];
+    if(!cur){ m[x.id]=x; changed++; }
+    else if(tsOf(x)>tsOf(cur)){ m[x.id]=x; changed++; }
+  });
+  var out=[]; Object.keys(m).forEach(function(k){ out.push(m[k]); });
+  return {list:out,changed:changed};
+}
+function applyRemote(data){
+  var n=0, r1=mergeList(reqs,data.requests); reqs=r1.list; n+=r1.changed;
+  var r2=mergeList(equips,data.equipment); equips=r2.list; n+=r2.changed;
+  var r3=mergeList(logs,data.logs); logs=r3.list; n+=r3.changed;
+  if(data.staff && tsOf(data.staff)>tsOf(staff)){ staff=data.staff; Store.setItem(SKEY,JSON.stringify(staff)); renderStaff(); n++; }
+  if(data.homeText && tsOf(data.homeText)>tsOf(homeText)){ homeText=data.homeText; Store.setItem(TKEY,JSON.stringify(homeText)); n++; }
+  if(data.depts && data.depts.list && tsOf(data.depts)>tsOf(deptMeta)){
+    depts=data.depts.list; deptMeta={updatedAt:data.depts.updatedAt,updatedBy:data.depts.updatedBy};
+    Store.setItem(DKEY2,JSON.stringify(data.depts)); renderDeptLegend(); n++;
+  }
+  if(data.holidays){
+    Object.keys(data.holidays.add||{}).forEach(function(k){ if(customHol[k]===undefined){ customHol[k]=data.holidays.add[k]; n++; } });
+    Object.keys(data.holidays.del||{}).forEach(function(k){ if(!removedHol[k]){ removedHol[k]=1; n++; } });
+  }
+  return n;
+}
+function payload(){
+  return {app:"mmt-request",version:1,savedAt:new Date().toISOString(),savedBy:me(),
+          requests:reqs,equipment:equips,logs:logs,staff:staff,homeText:homeText,depts:{list:depts,updatedAt:deptMeta.updatedAt,updatedBy:deptMeta.updatedBy},holidays:{add:customHol,del:removedHol}};
+}
+
+/* 브라우저에 폴더 접근 권한을 기억시키기 위한 저장소 */
+function idb(cb){
+  try{
+    if(!window.indexedDB) return cb(null);
+    var rq=indexedDB.open("mmt_fs",1);
+    rq.onupgradeneeded=function(){ rq.result.createObjectStore("h"); };
+    rq.onsuccess=function(){ cb(rq.result); };
+    rq.onerror=function(){ cb(null); };
+  }catch(e){ cb(null); }
+}
+function keepHandle(h){ try{ idb(function(db){ if(db) db.transaction("h","readwrite").objectStore("h").put(h,"dir"); }); }catch(e){} }
+function loadHandle(cb){
+  if(!window.indexedDB) return cb(null);
+  idb(function(db){
+    if(!db) return cb(null);
+    var g=db.transaction("h","readonly").objectStore("h").get("dir");
+    g.onsuccess=function(){ cb(g.result||null); }; g.onerror=function(){ cb(null); };
+  });
+}
+function dropHandle(){ idb(function(db){ if(db) db.transaction("h","readwrite").objectStore("h").delete("dir"); }); }
+
+function nasSupported(){ return typeof window.showDirectoryPicker==="function"; }
+function warnUnshared(){ if(!nas.file){ $("#nasBanner").hidden=false; $("#nasBanner").classList.add("alert"); } }
+function setNasUI(){
+  var b=$("#btnNas");
+  if(nas.file){
+    b.classList.add("on");
+    b.innerHTML='<i></i><b>공유 중</b><span class="sy">'+(nas.syncAt?relTime(nas.syncAt):"연결됨")+'</span>';
+    $("#nasState").innerHTML='<b style="color:#0B6B4F">연결됨</b> · '+esc(nas.dirName||"")+' \\ '+DATAFILE;
+    $("#nasSyncNow").hidden=false; $("#nasOff").hidden=false;
+    $("#nasPick").textContent="다른 폴더로 변경";
+    $("#nasBanner").hidden=true; $("#nasBanner").classList.remove("alert");
+  }else{
+    b.classList.remove("on");
+    b.innerHTML='<i></i><b>공유 안 함</b>';
+    $("#nasState").textContent="연결되지 않음 · 이 PC에만 저장 중";
+    $("#nasSyncNow").hidden=true; $("#nasOff").hidden=true;
+    $("#nasPick").textContent="NAS 공유 폴더 선택";
+  }
+  $("#nasWarn").hidden=nasSupported();
+  $("#chgWho").textContent=me()?("나: "+me()):"";
+}
+function readNas(){
+  return nas.file.getFile().then(function(f){
+    nas.lastMod=f.lastModified;
+    return f.text().then(function(t){
+      if(!t.trim()) return null;
+      try{ return JSON.parse(t); }catch(e){ return null; }
+    });
+  });
+}
+function writeNas(){
+  return nas.file.createWritable().then(function(w){
+    return w.write(JSON.stringify(payload(),null,1)).then(function(){ return w.close(); });
+  }).then(function(){
+    return nas.file.getFile().then(function(f){ nas.lastMod=f.lastModified; nas.syncAt=new Date().toISOString(); setNasUI(); });
+  });
+}
+/* 저장: 먼저 남의 변경을 읽어 합친 뒤 통째로 다시 씁니다 */
+function pushNas(){
+  if(!nas.file||nas.busy) return Promise.resolve();
+  nas.busy=true;
+  return readNas().then(function(remote){
+    if(remote) applyRemote(remote);
+    return writeNas();
+  }).then(function(){ nas.busy=false; renderChanges(); })
+    .catch(function(e){ nas.busy=false; toast("공유 폴더에 저장하지 못했습니다. 연결을 확인해 주세요."); });
+}
+/* 주기적으로 남의 변경 확인 */
+function pullNas(force){
+  if(!nas.file||nas.busy) return;
+  nas.busy=true;
+  nas.file.getFile().then(function(f){
+    if(!force && f.lastModified===nas.lastMod){ nas.busy=false; return; }
+    return f.text().then(function(t){
+      nas.lastMod=f.lastModified;
+      var data=null; try{ data=JSON.parse(t); }catch(e){}
+      var n=data?applyRemote(data):0;
+      nas.busy=false; nas.syncAt=new Date().toISOString();
+      Store.setItem(KEY,JSON.stringify(reqs)); Store.setItem(EKEY,JSON.stringify(equips)); Store.setItem(LKEY,JSON.stringify(logs));
+      setNasUI();
+      if(n){ renderAll(); renderEq(); renderChanges(); if(!$("#homeWrap").hidden) renderHome(); toast("다른 사용자의 변경 "+n+"건을 불러왔습니다."); }
+    });
+  }).catch(function(){ nas.busy=false; });
+}
+function startNasTimer(){ if(nas.timer) clearInterval(nas.timer); nas.timer=setInterval(function(){ pullNas(false); },15000); }
+
+function useDir(dir,silent){
+  nas.dir=dir; nas.dirName=dir.name;
+  return dir.getFileHandle(DATAFILE,{create:true}).then(function(fh){
+    nas.file=fh;
+    return readNas().then(function(remote){
+      var n=remote?applyRemote(remote):0;
+      return writeNas().then(function(){
+        keepHandle(dir);
+        Store.setItem(KEY,JSON.stringify(reqs)); Store.setItem(EKEY,JSON.stringify(equips)); Store.setItem(LKEY,JSON.stringify(logs));
+        renderAll(); renderEq(); renderChanges(); setNasUI(); startNasTimer(); if(!$("#homeWrap").hidden) renderHome();
+        if(!silent) toast("공유 폴더에 연결했습니다"+(n?" · 변경 "+n+"건 반영":"")+".");
+      });
+    });
+  });
+}
+function connectNas(){
+  if(!nasSupported()){ open($("#nasModal")); setNasUI(); return; }
+  window.showDirectoryPicker({mode:"readwrite",id:"mmtShare"}).then(function(dir){
+    return dir.requestPermission({mode:"readwrite"}).then(function(p){
+      if(p!=="granted"){ toast("폴더 쓰기 권한이 필요합니다."); return; }
+      if(!me()){ open($("#nasModal")); $("#myName").focus(); }
+      return useDir(dir,false);
+    });
+  }).catch(function(e){
+    if(e && e.name==="AbortError") return;
+    toast("폴더를 열 수 없습니다. 다른 폴더를 선택해 보세요.");
+  });
+}
+function armAutoReconnect(dir){
+  var handler=function(){
+    document.removeEventListener("click",handler,true);
+    dir.requestPermission({mode:"readwrite"}).then(function(p){
+      if(p==="granted") useDir(dir,false);
+      else toast("연결이 거부되어 이 PC에만 저장됩니다.");
+    }).catch(function(){});
+  };
+  document.addEventListener("click",handler,true);
+}
+function tryReconnect(){
+  if(!nasSupported()) return;
+  loadHandle(function(dir){
+    if(!dir) return;
+    dir.queryPermission({mode:"readwrite"}).then(function(p){
+      if(p==="granted"){ useDir(dir,true); return; }
+      $("#nasBanner").hidden=false;
+      $("#nasMsg").innerHTML='<b>공유 폴더에 연결하는 중입니다.</b> 아래 버튼을 누르고, 브라우저가 묻는 <b>편집 허용</b>을 선택해 주세요.';
+      $("#nasSub").textContent="이전에 연결했던 폴더를 기억하고 있습니다. 폴더를 다시 고를 필요 없이 버튼 한 번이면 연결됩니다. 브라우저 보안 규칙 때문에 파일을 열 때마다 한 번씩 확인이 필요합니다.";
+      $("#nasConnect").textContent="지금 연결";
+      $("#nasConnect").onclick=function(){
+        dir.requestPermission({mode:"readwrite"}).then(function(p2){
+          if(p2==="granted") useDir(dir,false); else toast("권한이 거부되었습니다.");
+        });
+      };
+      armAutoReconnect(dir);
+    }).catch(function(){});
+  });
+}
+
+/* 최근 변경 목록 */
+function renderChanges(){
+  var all=[];
+  reqs.forEach(function(r){ all.push({t:tsOf(r),by:r.updatedBy,kind:r._del?"삭제":"요청서",name:r.projectName||"(제목 없음)",id:r.id,del:!!r._del,ic:r._del?"d":"q"}); });
+  logs.forEach(function(l){ all.push({t:tsOf(l),by:l.updatedBy,kind:l._del?"삭제":"반출",name:eqName(l),log:l.id,del:!!l._del,ic:l._del?"d":"e"}); });
+  equips.forEach(function(e){ all.push({t:tsOf(e),by:e.updatedBy,kind:e._del?"삭제":"장비",name:e.name,eq:e.id,del:!!e._del,ic:e._del?"d":"e"}); });
+  all=all.filter(function(x){ return x.t; }).sort(function(a,b){ return a.t<b.t?1:-1; }).slice(0,8);
+  $("#chgList").innerHTML=all.length? '<div style="padding:6px">'+all.map(function(x){
+    var mine=x.by===me();
+    return '<div class="chg'+(!mine&&Date.now()-new Date(x.t).getTime()<3600000?" new":"")+'"'+
+      (x.del?'':(x.id?' data-id="'+x.id+'"':(x.log?' data-log="'+x.log+'"':'')))+'>'+
+      '<span class="ic '+x.ic+'">'+x.kind.charAt(0)+'</span><div style="min-width:0">'+
+      '<div class="tt">'+esc(x.name)+'</div>'+
+      '<div class="mm">'+esc(x.kind)+' · '+esc(x.by||"—")+' · '+relTime(x.t)+'</div></div></div>';
+  }).join("")+'</div>' : '<div class="empty">아직 변경 기록이 없습니다.</div>';
+  $("#chgWho").textContent=me()?("나: "+me()):"";
+}
+
+/* ---------- 요청부서 관리 ---------- */
+var DKEY2="mmt_depts_v1";
+var DEF_DEPTS=[
+  {name:"경영총괄",     color:"#2F4F9E"},
+  {name:"서비스운영1팀", color:"#0E8F6F"},
+  {name:"경영관리팀",   color:"#C8791A"},
+  {name:"브랜드커머스팀",color:"#C0356B"}
+];
+var depts=[];
+function loadDepts(){
+  try{ var o=JSON.parse(Store.getItem(DKEY2)||"null"); }catch(e){ o=null; }
+  depts=(o&&Array.isArray(o.list))?o.list:DEF_DEPTS.map(function(d){ return {name:d.name,color:d.color}; });
+  deptMeta=(o&&o.updatedAt)?{updatedAt:o.updatedAt,updatedBy:o.updatedBy}:{};
+}
+var deptMeta={};
+function saveDepts(){
+  deptMeta=touch({});
+  Store.setItem(DKEY2,JSON.stringify({list:depts,updatedAt:deptMeta.updatedAt,updatedBy:deptMeta.updatedBy}));
+  pushNas();
+}
+function deptColor(name){
+  if(!name) return "";
+  for(var i=0;i<depts.length;i++) if(depts[i].name===name) return depts[i].color;
+  return "";
+}
+function rgba(hex,a){
+  hex=(hex||"").replace("#","");
+  if(hex.length===3) hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  if(hex.length!==6) return "rgba(110,118,132,"+a+")";
+  return "rgba("+parseInt(hex.slice(0,2),16)+","+parseInt(hex.slice(2,4),16)+","+parseInt(hex.slice(4,6),16)+","+a+")";
+}
+function deptBadge(name){
+  if(!name) return '<span style="color:var(--muted2)">—</span>';
+  var c=deptColor(name);
+  if(!c) return '<span class="dbadge" style="background:#F1F3F7;color:#565E6D">'+esc(name)+'</span>';
+  return '<span class="dbadge" style="background:'+rgba(c,.13)+';color:'+c+'">'+
+         '<span class="ddot" style="background:'+c+'"></span>'+esc(name)+'</span>';
+}
+function deptDot(name){
+  var c=deptColor(name);
+  return c?'<span class="ddot" style="background:'+c+'" title="'+esc(name)+'"></span>':"";
+}
+/* 사용 중인 부서까지 포함한 전체 목록 */
+function allDeptNames(){
+  var out=depts.map(function(d){ return d.name; });
+  reqs.forEach(function(r){ if(!r._del && r.dept && out.indexOf(r.dept)<0) out.push(r.dept); });
+  return out;
+}
+function deptCount(name){
+  var n=0; reqs.forEach(function(r){ if(!r._del && r.dept===name) n++; });
+  return n;
+}
+function fillDeptSelect(cur){
+  var names=allDeptNames(), sel=$("#deptSel");
+  sel.innerHTML='<option value="">부서를 선택하세요</option>'+
+    names.map(function(n){ return '<option'+(n===cur?" selected":"")+'>'+esc(n)+'</option>'; }).join("")+
+    '<option value="__etc">＋ 직접 입력…</option>';
+  if(cur&&names.indexOf(cur)<0){ sel.value="__etc"; $("#deptEtc").value=cur; }
+  else sel.value=cur||"";
+  deptSelStyle();
+}
+function deptSelStyle(){
+  var sel=$("#deptSel"), v=sel.value, etc=(v==="__etc");
+  $("#deptEtc").hidden=!etc;
+  if(etc){ sel.style.color="var(--muted)"; sel.style.background="#fff"; return; }
+  var c=deptColor(v);
+  sel.style.color=c||"var(--text)";
+  sel.style.background=c?rgba(c,.08):"#fff";
+}
+function renderDeptList(){
+  $("#dpList").innerHTML=depts.length? depts.map(function(d,i){
+    var n=deptCount(d.name);
+    return '<div class="dprow">'+
+      '<input type="color" value="'+esc(d.color)+'" data-dc="'+i+'">'+
+      '<input type="text" value="'+esc(d.name)+'" data-dn="'+i+'">'+
+      '<span class="cnt">'+(n?n+"건":"")+'</span>'+
+      '<button class="del" data-dd="'+i+'" title="삭제">✕</button></div>';
+  }).join("") : '<div class="empty">등록된 부서가 없습니다.</div>';
+  var extra=allDeptNames().filter(function(n){ return !deptColor(n); });
+  if(extra.length){
+    $("#dpList").innerHTML+='<div class="hint" style="margin-top:10px">목록에 없지만 요청서에 쓰인 부서: '+
+      extra.map(function(n){ return '<b>'+esc(n)+'</b>('+deptCount(n)+'건)'; }).join(", ")+
+      ' — 위에서 같은 이름으로 추가하면 색상이 적용됩니다.</div>';
+  }
+}
+function renderTypeLegend(){
+  var box=$("#typeLegend"); if(!box) return;
+  var rows=[
+    ["shoot","촬영일","#15171C"],
+    ["edit","편집 (1차 전 2일)","#4A5261"],
+    ["first","1차 편집본","#15171C"],
+    ["editkey","중요 편집 (최종 전 1일)","#9E2637"],
+    ["final","최종 납품","#9E2637"],
+    ["ret","장비 반납","#0A6B75"]
+  ];
+  box.innerHTML='<span style="width:100%;color:var(--muted2);font-size:10.5px;font-family:var(--mono);letter-spacing:.05em;margin-bottom:1px">일정 종류</span>'+
+    rows.map(function(r){
+      return '<span style="color:'+r[2]+';font-weight:600"><span class="lgico" style="color:'+r[2]+'">'+ICON[r[0]]+'</span>'+r[1]+'</span>';
+    }).join("")+
+    '<span style="width:100%;margin-top:3px"><i style="background:#FDF6F7;border:1px solid #E7BFC6"></i>주말 · 공휴일</span>';
+}
+function renderDeptLegend(){
+  var box=$("#deptLegend");
+  if(!box) return;
+  if(!depts.length){ box.innerHTML=""; return; }
+  box.innerHTML='<span style="width:100%;color:var(--muted2);font-size:10.5px;font-family:var(--mono);letter-spacing:.05em;margin-bottom:1px">요청부서</span>'+
+    depts.map(function(d){
+      var n=deptCount(d.name);
+      return '<span><i style="background:'+d.color+';width:9px;height:9px;border-radius:3px;display:inline-block"></i>'+esc(d.name)+
+             (n?' <b style="color:'+d.color+';font-family:var(--mono);font-size:10.5px">'+n+'</b>':'')+'</span>';
+    }).join("");
+}
+function afterDeptChange(){
+  saveDepts(); renderDeptList(); renderAll(); renderDeptLegend();
+  if(!$("#homeWrap").hidden) renderHome();
+}
+
+/* ---------- 장비 항목(카테고리·보관위치) 관리 ---------- */
+var OKEY="mmt_eqopts_v1";
+var DEF_CAT=["카메라","렌즈","음향","조명","삼각대/지지대","저장장치","기타"];
+var DEF_PLACE=["3층 장","2층 창고","촬영 스튜디오","외부 보관"];
+var eqOpts={cat:null,place:null};
+function loadOpts(){
+  try{ var o=JSON.parse(Store.getItem(OKEY)||"null"); }catch(e){ o=null; }
+  eqOpts.cat=(o&&Array.isArray(o.cat))?o.cat:DEF_CAT.slice();
+  eqOpts.place=(o&&Array.isArray(o.place))?o.place:DEF_PLACE.slice();
+}
+function saveOpts(){ Store.setItem(OKEY,JSON.stringify(eqOpts)); fillDatalists(); }
+function usedVals(key){
+  var m={};
+  equips.filter(function(e){ return !e._del && e[key]; }).forEach(function(e){ m[e[key]]=(m[e[key]]||0)+1; });
+  return m;
+}
+function fillDatalists(){
+  var uc=usedVals("cat"), up=usedVals("place");
+  function opts(list,used){
+    var all=list.slice();
+    Object.keys(used).forEach(function(v){ if(all.indexOf(v)<0) all.push(v); });
+    return all.map(function(v){ return '<option value="'+esc(v)+'">'; }).join("");
+  }
+  $("#catList").innerHTML=opts(eqOpts.cat,uc);
+  $("#placeList").innerHTML=opts(eqOpts.place,up);
+}
+function renderOpts(){
+  function draw(box,list,used,kind){
+    var all=list.slice();
+    Object.keys(used).forEach(function(v){ if(all.indexOf(v)<0) all.push(v); });
+    $(box).innerHTML=all.length? all.map(function(v){
+      var n=used[v]||0, custom=list.indexOf(v)<0;
+      return '<div class="hrow"><span style="flex:1">'+esc(v)+'</span>'+
+        (n?'<span class="tag">'+n+'대 사용 중</span>':'')+
+        (custom?'<span class="tag">목록에 없음</span>':'')+
+        '<button class="hx" data-opt="'+kind+'" data-v="'+esc(v)+'" title="목록에서 제거">✕</button></div>';
+    }).join("") : '<div class="empty">등록된 항목이 없습니다.</div>';
+  }
+  draw("#optCatList",eqOpts.cat,usedVals("cat"),"cat");
+  draw("#optPlaceList",eqOpts.place,usedVals("place"),"place");
+}
+$("#eqOpts").onclick=function(){ renderOpts(); open($("#optModal")); };
+function addOpt(kind,inp){
+  var v=$(inp).value.trim();
+  if(!v){ toast("내용을 입력해 주세요."); return; }
+  if(eqOpts[kind].indexOf(v)>-1){ toast("이미 있는 항목입니다."); return; }
+  eqOpts[kind].push(v); saveOpts(); renderOpts(); $(inp).value=""; toast("'"+v+"' 추가했습니다.");
+}
+$("#optCatAdd").onclick=function(){ addOpt("cat","#optCat"); };
+$("#optPlaceAdd").onclick=function(){ addOpt("place","#optPlace"); };
+$("#optModal").addEventListener("click",function(e){
+  var b=e.target.closest("[data-opt]"); if(!b) return;
+  var kind=b.getAttribute("data-opt"), v=b.getAttribute("data-v");
+  var n=usedVals(kind)[v]||0;
+  if(n && !confirm("'"+v+"' 은(는) 현재 "+n+"대가 사용 중입니다.\n선택 목록에서만 제거되고, 등록된 장비의 값은 그대로 유지됩니다. 계속할까요?")) return;
+  var i=eqOpts[kind].indexOf(v);
+  if(i<0){ toast("이 항목은 장비에 직접 입력된 값이라 목록에서 지울 수 없습니다."); return; }
+  eqOpts[kind].splice(i,1); saveOpts(); renderOpts(); toast("목록에서 제거했습니다.");
+});
+
+/* ---------- 담당자 정보 ---------- */
+var SKEY="mmt_staff_v1", staff={};
+function loadStaff(){ try{ staff=JSON.parse(Store.getItem(SKEY)||"{}")||{}; }catch(e){ staff={}; } }
+function saveStaff(){ Store.setItem(SKEY,JSON.stringify(staff)); pushNas(); renderStaff(); }
+function staffLine(){
+  if(!staff.name) return "";
+  var t=[staff.name+(staff.rank?" "+staff.rank:"")];
+  if(staff.tel) t.push(staff.tel);
+  else if(staff.ext) t.push("내선 "+staff.ext);
+  return t.join(" · ");
+}
+function renderStaff(){
+  var b=$("#btnStaff");
+  b.innerHTML='<i></i><b>'+esc(staff.name?("담당 "+staffLine()):"담당자 미지정")+'</b>';
+  b.classList.toggle("on",!!staff.name);
+}
+function openStaff(){
+  $("#stName").value=staff.name||""; $("#stRank").value=staff.rank||"";
+  $("#stTel").value=staff.tel||""; $("#stExt").value=staff.ext||"";
+  $("#stMail").value=staff.mail||""; $("#stNote").value=staff.note||"";
+  $("#stMeta").textContent=staff.updatedAt?("최근 수정: "+(staff.updatedBy||"—")+" · "+relTime(staff.updatedAt)):"";
+  open($("#staffModal"));
+}
+
+/* ---------- 선택 항목 설명 팝업 ---------- */
+var tipBox=null;
+function showTip(el){
+  if(!tipBox){ tipBox=document.createElement("div"); tipBox.className="tip-pop"; document.body.appendChild(tipBox); }
+  var txt=el.getAttribute("data-tip");
+  tipBox.textContent=txt;
+  tipBox.classList.toggle("wide",txt.indexOf("\n")>-1);
+  tipBox.style.left="-9999px"; tipBox.classList.add("on");
+  var r=el.getBoundingClientRect(), b=tipBox.getBoundingClientRect();
+  var left=Math.min(Math.max(8,r.left), window.innerWidth-b.width-8);
+  var top=r.top-b.height-9;
+  if(top<8) top=r.bottom+9;
+  tipBox.style.left=left+"px"; tipBox.style.top=top+"px";
+}
+function hideTip(){ if(tipBox) tipBox.classList.remove("on"); }
+document.addEventListener("mouseover",function(e){
+  var t=e.target.closest?e.target.closest("[data-tip]"):null;
+  if(t) showTip(t);
+});
+document.addEventListener("mouseout",function(e){
+  if(e.target.closest && e.target.closest("[data-tip]")) hideTip();
+});
+document.addEventListener("focusin",function(e){
+  var t=e.target.closest?e.target.closest("[data-tip]"):null;
+  if(t) showTip(t);
+});
+document.addEventListener("focusout",hideTip);
+window.addEventListener("scroll",hideTip,true);
+
+/* ---------- 촬영 / 편집 필요 여부 ---------- */
+function sectionToggle(){
+  var f=$("#reqForm"), sn=f.querySelector("[name=shootNeed]:checked"), en=f.querySelector("[name=editNeed]:checked");
+  var noShoot=sn&&sn.value==="촬영 없음", noEdit=en&&en.value==="편집 없음";
+  $("#shootBox").classList.toggle("off",noShoot);
+  $("#editBox").classList.toggle("off",noEdit);
+  var sd=f.querySelector("[name=shootDate]");
+  sd.disabled=noShoot;
+  if(noShoot) sd.value="";
+  dateHints();
+}
+
+/* ---------- 폼 날짜 안내 ---------- */
+function dateHints(){
+  var s=$("[name=shootDate]").value, f=$("[name=firstDate]").value, v=$("[name=finalDate]").value;
+  function warn(el,k,extra){
+    if(!k){ el.innerHTML=""; return; }
+    var off=offReason(k), h="";
+    if(off) h+='<div class="dowarn">⚠ '+esc(off)+' · 휴무일입니다</div>';
+    else h+='<div class="dowarn ok">'+dowName(k)+'요일</div>';
+    if(extra) h+='<div class="dowarn ok">'+esc(extra)+'</div>';
+    el.innerHTML=h;
+  }
+  warn($("#wShoot"),s);
+  warn($("#wFirst"),f,f?("편집 작업일 "+editDays({firstDate:f}).map(shortD).join(", ")):"");
+  warn($("#wFinal"),v,v?("중요 편집일 "+keyEditDays({finalDate:v}).map(shortD).join(", ")):"");
+}
+
+/* ---------- 모달 ---------- */
+function open(m){ m.classList.add("on"); document.body.style.overflow="hidden"; }
+function close(m){ m.classList.remove("on"); document.body.style.overflow=""; }
+function closeAll(){ $$(".modal.on").forEach(close); }
+
+function readDraftDept(){
+  try{ var d=JSON.parse(Store.getItem(DKEY)||"null"); return d&&d.dept?d.dept:""; }catch(e){ return ""; }
+}
+function openForm(id){
+  editingId=id||null;
+  $("#draftBar").hidden=true;
+  if(id){
+    var r=byId(id);
+    fillForm(r);
+    $("#formTitle").textContent="요청서 수정";
+    $("#formNo").textContent=r.reqNo||"";
+  }else{
+    var draft=null; try{ draft=JSON.parse(Store.getItem(DKEY)||"null"); }catch(e){}
+    if(draft&&Object.keys(draft).length){ fillForm(draft); $("#draftBar").hidden=false; }
+    else{ fillForm({writeDate:today(),priority:"일반",status:"접수대기",revision:"기본 1~2회 (추가 수정 시 별도 협의)",shootNeed:"촬영 필요",editNeed:"편집 필요"}); }
+    $("#formTitle").textContent="신제품 촬영 및 편집 업무 요청서";
+    $("#formNo").textContent=nextNo();
+  }
+  fillDeptSelect(id?(byId(id)||{}).dept:(readDraftDept()));
+  sectionToggle();
+  dateHints();
+  open($("#formModal"));
+}
+
+function saveForm(){
+  var o=readForm();
+  if(!o.projectName){ toast("프로젝트명을 입력해 주세요."); $("[name=projectName]").focus(); return; }
+  if(!o.shootDate&&!o.firstDate&&!o.finalDate){ toast("일정에 표시하려면 날짜를 최소 1개 입력해 주세요."); $("[name=shootDate]").focus(); return; }
+  touch(o);
+  if(editingId){
+    var r=byId(editingId); o.id=r.id; o.reqNo=r.reqNo; o.createdAt=r.createdAt;
+    reqs[reqs.indexOf(r)]=o;
+    toast("요청서를 수정했습니다.");
+  }else{
+    o.id="r"+Date.now()+Math.random().toString(36).slice(2,6);
+    o.reqNo=nextNo(); o.createdAt=o.updatedAt;
+    reqs.push(o);
+    Store.removeItem(DKEY);
+    toast("저장 완료 · 달력에 일정이 추가되었습니다.");
+  }
+  save();
+  selected=o.shootDate||o.firstDate||o.finalDate;
+  cursor=new Date(selected+"T00:00:00");
+  renderAll(); closeAll(); editingId=null;
+}
+
+/* ---------- 이벤트 바인딩 ---------- */
+$("#prev").onclick=function(){ cursor=new Date(cursor.getFullYear(),cursor.getMonth()-1,1); renderCalendar(); };
+$("#next").onclick=function(){ cursor=new Date(cursor.getFullYear(),cursor.getMonth()+1,1); renderCalendar(); };
+$("#btnToday").onclick=function(){ cursor=new Date(); selected=today(); renderCalendar(); renderSide(); };
+$("#btnNew").onclick=function(){ openForm(null); };
+$("#btnSave").onclick=saveForm;
+
+/* 부서 관리 */
+$("#btnDeptMng").onclick=function(){ renderDeptList(); open($("#deptModal")); };
+$("#deptSel").addEventListener("change",function(){
+  deptSelStyle();
+  if(this.value==="__etc") $("#deptEtc").focus();
+});
+$("#dpAdd").onclick=function(){
+  var n=$("#dpName").value.trim(), c=$("#dpColor").value;
+  if(!n){ toast("부서명을 입력해 주세요."); return; }
+  if(deptColor(n)){ toast("이미 등록된 부서입니다."); return; }
+  depts.push({name:n,color:c}); afterDeptChange();
+  $("#dpName").value=""; toast("'"+n+"' 부서를 추가했습니다.");
+};
+$("#dpList").addEventListener("input",function(e){
+  var c=e.target.closest("[data-dc]"), n=e.target.closest("[data-dn]");
+  if(c){ depts[+c.getAttribute("data-dc")].color=c.value; saveDepts(); renderAll(); renderDeptLegend(); }
+  if(n){
+    var i=+n.getAttribute("data-dn"), old=depts[i].name, v=n.value.trim();
+    if(!v) return;
+    depts[i].name=v;
+    reqs.forEach(function(r){ if(!r._del && r.dept===old){ r.dept=v; touch(r); } });
+    saveDepts(); save(); renderAll(); renderDeptLegend();
+  }
+});
+$("#dpList").addEventListener("click",function(e){
+  var b=e.target.closest("[data-dd]"); if(!b) return;
+  var i=+b.getAttribute("data-dd"), d=depts[i], n=deptCount(d.name);
+  if(!confirm("'"+d.name+"' 부서를 목록에서 삭제할까요?"+(n?"\n\n이 부서로 등록된 요청서 "+n+"건은 그대로 유지되며, 색상만 사라집니다.":""))) return;
+  depts.splice(i,1); afterDeptChange(); toast("부서를 삭제했습니다.");
+});
+$("#dpReset").onclick=function(){
+  if(!confirm("부서 목록을 기본 4개(경영총괄 · 서비스운영1팀 · 경영관리팀 · 브랜드커머스팀)로 되돌릴까요?")) return;
+  depts=DEF_DEPTS.map(function(d){ return {name:d.name,color:d.color}; });
+  afterDeptChange(); toast("기본 부서로 되돌렸습니다.");
+};
+
+$("#btnHomeEdit").onclick=function(){
+  $("#hmTitle").value=homeText.title||"";
+  $("#hmSub").value=homeText.sub!==undefined?homeText.sub:"";
+  $("#hmMeta").textContent=homeText.updatedAt?("최근 수정: "+(homeText.updatedBy||"—")+" · "+relTime(homeText.updatedAt)):"";
+  open($("#homeModal"));
+};
+$("#hmSave").onclick=function(){
+  homeText={title:$("#hmTitle").value.trim()||DEF_TITLE,sub:$("#hmSub").value.trim()};
+  touch(homeText); saveHomeText(); renderHome(); closeAll(); toast("홈 화면 문구를 수정했습니다.");
+};
+$("#hmReset").onclick=function(){
+  if(!confirm("제목과 안내문을 기본값으로 되돌릴까요?")) return;
+  homeText={title:DEF_TITLE,sub:""}; touch(homeText); saveHomeText(); renderHome(); closeAll(); toast("기본값으로 되돌렸습니다.");
+};
+$("#navHome").onclick=function(){ setTab("home"); };
+$("#navCal").onclick=function(){ setTab("cal"); };
+$("#navList").onclick=function(){ setTab("list"); };
+$("#navEq").onclick=function(){ setTab("eq"); };
+$("#navNew").onclick=function(){ openForm(null); };
+$("#homeWrap").addEventListener("click",function(e){
+  var r=e.target.closest(".r[data-id]"); if(r){ openView(r.getAttribute("data-id")); return; }
+  var rl=e.target.closest(".r[data-log]"); if(rl){ setTab("eq"); openLog(rl.getAttribute("data-log")); return; }
+  var c=e.target.closest(".card"); if(!c) return;
+  var go=c.getAttribute("data-go");
+  if(go==="new") openForm(null); else setTab(go);
+});
+function setTab(t){
+  /* t: home | cal | list | eq */
+  $("#navHome").classList.toggle("on",t==="home");
+  $("#navCal").classList.toggle("on",t==="cal");
+  $("#navList").classList.toggle("on",t==="list");
+  $("#navEq").classList.toggle("on",t==="eq");
+  var PT={cal:["cal","▦","일정표"],list:["list","☰","일정 목록"],eq:["eq","▣","보유 장비"]};
+  if(PT[t]){
+    var pt=$("#pageTitle");
+    pt.className="ptitle "+PT[t][0];
+    pt.innerHTML='<span class="pic">'+PT[t][1]+'</span><b>'+PT[t][2]+'</b>';
+  }
+
+  $("#homeWrap").hidden=t!=="home";
+  $("#workWrap").hidden=t==="home";
+  $("#calWrap").hidden=t!=="cal";
+  $("#listWrap").hidden=t!=="list";
+  $("#eqWrap").hidden=t!=="eq";
+  $("#calHeadTools").hidden=t!=="cal";
+
+  /* 우측 사이드바는 달력·목록에서만 */
+  document.body.classList.toggle("homemode",t==="home");
+  document.body.classList.toggle("eqmode",t==="eq");
+
+  if(t==="home") renderHome();
+  if(t==="list") renderList();
+  if(t==="eq") renderEq();
+  window.scrollTo(0,0);
+}
+
+/* ---------- 홈 화면 ---------- */
+/* 홈 문구 */
+var TKEY="mmt_hometext_v1", DEF_TITLE="촬영 제작 요청 관리", homeText={};
+function loadHomeText(){ try{ homeText=JSON.parse(Store.getItem(TKEY)||"{}")||{}; }catch(e){ homeText={}; } }
+function saveHomeText(){ Store.setItem(TKEY,JSON.stringify(homeText)); pushNas(); }
+/* 요청서 등록 시각 기준 집계 (createdAt 없으면 작성일 사용) */
+function reqDate(r){ return (r.createdAt||"").slice(0,10)||r.writeDate||""; }
+
+function renderHome(){
+  var live=reqs.filter(function(r){ return !r._del; });
+  var now=new Date(), mk=now.getFullYear()+"-"+pad(now.getMonth()+1);
+  var month=live.filter(function(r){ return reqDate(r).indexOf(mk)===0; }).length;
+  var w=new Date(); w.setDate(w.getDate()-6); var wk=ymd(w);
+  var week=live.filter(function(r){ var d=reqDate(r); return d && d>=wk; }).length;
+  var open2=live.filter(function(r){ return r.status!=="완료"; }).length;
+  var urg=live.filter(function(r){ return r.status!=="완료" && r.priority==="긴급"; }).length;
+  var eqOut=logs.filter(function(l){ return !l._del && !l.returnedDate; }).length;
+  $("#homeStat").innerHTML=
+    '<div style="min-width:96px"><b>'+month+'</b><span>이번 달 요청</span><span class="sub">최근 7일 '+week+'건</span></div>'+
+    '<div><b'+(open2?'':' style="color:var(--muted2)"')+'>'+open2+'</b><span>진행 중</span></div>'+
+    '<div><b'+(urg?' style="color:var(--final)"':' style="color:var(--muted2)"')+'>'+urg+'</b><span>긴급</span></div>'+
+    '<div><b'+(eqOut?' style="color:var(--equip)"':' style="color:var(--muted2)"')+'>'+eqOut+'</b><span>장비 반출</span></div>';
+
+  $("#homeTitle").textContent=homeText.title||DEF_TITLE;
+  var sub=homeText.sub!==undefined?homeText.sub:(staff.name?("문의는 "+staffLine()+" 로 해 주세요."):"");
+  $("#homeSub").textContent=sub;
+  $("#homeSub").style.display=sub?"":"none";
+
+  /* 오늘 일정 */
+  var map=eventMap(), tk=today(), tv=map[tk]||[];
+  $("#hfToday").innerHTML='<h4>오늘 일정 <em>'+fmt(tk)+' ('+dowName(tk)+')</em></h4>'+
+    (tv.length? tv.slice(0,5).map(function(e){
+      if(e.type==="ret") return '<div class="r" data-log="'+e.log.id+'"><span class="bar" style="background:var(--equip)"></span><span class="nm">[반납] '+esc(eqName(e.log))+'</span><span class="dd">'+logState(e.log)+'</span></div>';
+      return '<div class="r" data-id="'+e.req.id+'"><span class="bar" style="background:var('+BARC[e.type]+')"></span>'+deptDot(e.req.dept)+'<span class="nm">['+TYPE[e.type].label+'] '+esc(e.req.projectName||"")+'</span><span class="dd">'+esc(e.req.status||"")+'</span></div>';
+    }).join("") : '<div class="none">오늘은 등록된 일정이 없습니다.</div>');
+
+  /* 마감 임박 */
+  var soon=[];
+  live.forEach(function(r){
+    if(r.status==="완료") return;
+    [["shoot",r.shootDate],["first",r.firstDate],["final",r.finalDate]].forEach(function(pr){
+      var dd=dday(pr[1]); if(dd!==null&&dd>=0&&dd<=7) soon.push({t:pr[0],r:r,d:pr[1],dd:dd});
+    });
+  });
+  logs.forEach(function(l){
+    var dd=dday(l.dueDate);
+    if(!l._del && !l.returnedDate && dd!==null && dd<=7) soon.push({t:"ret",log:l,d:l.dueDate,dd:dd});
+  });
+  soon.sort(function(a,b){ return a.dd-b.dd; });
+  $("#hfSoon").innerHTML='<h4>마감 임박 <em>D-7 이내</em></h4>'+
+    (soon.length? soon.slice(0,5).map(function(e){
+      var lab=e.dd<0?("연체 "+(-e.dd)+"일"):(e.dd===0?"D-DAY":"D-"+e.dd);
+      var col=e.dd<=0?'color:var(--final);font-weight:700':'';
+      if(e.t==="ret") return '<div class="r" data-log="'+e.log.id+'"><span class="bar" style="background:var(--equip)"></span><span class="nm">[반납] '+esc(eqName(e.log))+'</span><span class="dd" style="'+col+'">'+lab+'</span></div>';
+      return '<div class="r" data-id="'+e.r.id+'"><span class="bar" style="background:var('+BARC[e.t]+')"></span>'+deptDot(e.r.dept)+'<span class="nm">['+TYPE[e.t].label+'] '+esc(e.r.projectName||"")+'</span><span class="dd" style="'+col+'">'+lab+'</span></div>';
+    }).join("") : '<div class="none">7일 이내 마감 일정이 없습니다.</div>');
+}
+function setSub(t){
+  $("#subLog").classList.toggle("on",t==="log");
+  $("#subReg").classList.toggle("on",t==="reg");
+  $("#subSum").classList.toggle("on",t==="sum");
+  $("#logView").hidden=t!=="log"; $("#regView").hidden=t!=="reg"; $("#sumView").hidden=t!=="sum";
+}
+$("#btnBackHome").onclick=function(){ setTab("home"); };
+$("#subLog").onclick=function(){ setSub("log"); };
+$("#subReg").onclick=function(){ setSub("reg"); };
+$("#subSum").onclick=function(){ setSub("sum"); };
+$("#eqQ").addEventListener("input",renderEq);
+
+$("#btnNewEq").onclick=function(){ openEq(null); };
+$("#btnNewLog").onclick=function(){ if(!equips.filter(function(e){return !e._del;}).length){ toast("장비대장에 장비를 먼저 등록해 주세요."); return; } openLog(null); };
+$("#eqSave").onclick=function(){
+  var f=$("#eqForm"), o={};
+  $$("input,select,textarea",f).forEach(function(el){ if(el.name) o[el.name]=el.value.trim(); });
+  if(!o.name){ toast("장비명을 입력해 주세요."); return; }
+  touch(o);
+  if(eqEditId){ o.id=eqEditId; equips[equips.indexOf(eqById(eqEditId))]=o; toast("장비 정보를 수정했습니다."); }
+  else{ o.id="e"+Date.now().toString(36); equips.push(o); toast("장비를 등록했습니다."); }
+  saveEq(); renderEq(); fillDatalists(); closeAll();
+};
+$("#eqDel").onclick=function(){
+  var e=eqById(eqEditId); if(!e) return;
+  if(!confirm("'"+e.name+"'을(를) 장비대장에서 삭제할까요?")) return;
+  equips[equips.indexOf(e)]=touch({id:e.id,name:e.name,_del:true});
+  saveEq(); renderEq(); closeAll(); toast("장비를 삭제했습니다.");
+};
+$("#logSave").onclick=function(){
+  var f=$("#logForm"), o={};
+  $$("input,select",f).forEach(function(el){ if(el.name) o[el.name]=el.value.trim(); });
+  if(!o.equipId){ toast("장비를 선택해 주세요."); return; }
+  if(!o.outDate||!o.dueDate){ toast("반출일과 반납 예정일을 입력해 주세요."); return; }
+  if(o.dueDate<o.outDate){ toast("반납 예정일이 반출일보다 빠릅니다."); return; }
+  var e=eqById(o.equipId); o.equipName=e?e.name:""; touch(o);
+  if(logEditId){ o.id=logEditId; logs[logs.indexOf(logById(logEditId))]=o; toast("반출 기록을 수정했습니다."); }
+  else{ o.id="l"+Date.now().toString(36); logs.push(o); toast("반출 등록 완료 · 반납 예정일이 달력에 표시됩니다."); }
+  saveEq(); renderEq(); renderCalendar(); renderSide(); closeAll();
+};
+$("#logDel").onclick=function(){
+  var l=logById(logEditId); if(!l) return;
+  if(!confirm("이 반출 기록을 삭제할까요?")) return;
+  logs[logs.indexOf(l)]=touch({id:l.id,equipName:l.equipName||eqName(l),_del:true});
+  saveEq(); renderEq(); renderCalendar(); renderSide(); closeAll(); toast("반출 기록을 삭제했습니다.");
+};
+$("#logReturn").onclick=function(){ $("[name=returnedDate]",$("#logForm")).value=today(); toast("반납일을 오늘로 입력했습니다. 저장을 눌러 주세요."); };
+$("#logForm").addEventListener("change",logHints);
+$("#logForm").addEventListener("input",logHints);
+$("#eqWrap").addEventListener("change",function(e){
+  var sel=e.target.closest("[data-st]"); if(!sel) return;
+  var eq=eqById(sel.getAttribute("data-st")); if(!eq) return;
+  eq.state=sel.value; touch(eq); saveEq();
+  sel.className="stsel e-"+eq.state;
+  renderSum();
+  toast(eq.name+" → "+eq.state);
+});
+$("#btnSeed").onclick=function(){
+  var have={};
+  equips.filter(function(e){ return !e._del; }).forEach(function(e){ have[(e.name+"|"+(e.model||"")).replace(/\s+/g,"")]=1; });
+  var add=EQ_SEED.filter(function(s){ return !have[(s.name+"|"+s.model).replace(/\s+/g,"")]; });
+  if(!add.length){ toast("첨부 장비대장 11개 품목이 이미 모두 등록되어 있습니다."); return; }
+  if(!confirm("장비대장에 없는 "+add.length+"개 품목을 추가 등록할까요?\n\n"+add.map(function(s){return "· "+s.name;}).join("\n")+"\n\n※ 기존 등록 내용은 그대로 유지됩니다.")) return;
+  add.forEach(function(s){
+    equips.push(touch({id:"e"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+      code:"",name:s.name,model:s.model,cat:s.cat,buyDate:"",dept:"콘텐츠제작팀",owner:"",state:"미사용",place:s.place,note:s.note}));
+  });
+  saveEq(); renderEq(); toast(add.length+"개 품목을 등록했습니다.");
+};
+$("#eqWrap").addEventListener("click",function(e){
+  var rb=e.target.closest("[data-ret]");
+  if(rb){
+    e.stopPropagation();
+    var l=logById(rb.getAttribute("data-ret"));
+    if(l && confirm("'"+eqName(l)+"' 반납 처리할까요? (반납일: "+fmt(today())+")")){
+      l.returnedDate=today(); touch(l); saveEq(); renderEq(); renderCalendar(); renderSide(); toast("반납 처리했습니다.");
+    }
+    return;
+  }
+  if(e.target.closest("[data-st]")) return;
+  var eb=e.target.closest("[data-edit]"); if(eb){ e.stopPropagation(); openEq(eb.getAttribute("data-edit")); return; }
+  var tr=e.target.closest("tr[data-eq]"); if(tr){ openEq(tr.getAttribute("data-eq")); return; }
+  var tl=e.target.closest("tr[data-log]"); if(tl){ openLog(tl.getAttribute("data-log")); }
+});
+
+$("#grid").addEventListener("click",function(e){
+  var lg=e.target.closest("[data-log]");
+  if(lg){ openLog(lg.getAttribute("data-log")); return; }
+  var ev=e.target.closest(".ev");
+  if(ev){ openView(ev.getAttribute("data-id")); return; }
+  var cell=e.target.closest(".day"); if(!cell) return;
+  selected=cell.getAttribute("data-date");
+  var d=new Date(selected+"T00:00:00");
+  if(d.getMonth()!==cursor.getMonth()) cursor=new Date(d.getFullYear(),d.getMonth(),1);
+  renderCalendar(); renderSide();
+});
+$("#grid").addEventListener("dblclick",function(e){
+  var cell=e.target.closest(".day"); if(!cell||e.target.closest(".ev")) return;
+  selected=cell.getAttribute("data-date"); openForm(null);
+});
+document.addEventListener("click",function(e){
+  var lit=e.target.closest("#dayList .item[data-log], #soonList .item[data-log]");
+  if(lit){ openLog(lit.getAttribute("data-log")); return; }
+  var it=e.target.closest("#dayList .item, #soonList .item, #listBody tr");
+  if(it&&it.getAttribute("data-id")) openView(it.getAttribute("data-id"));
+  if(e.target.closest("[data-close]")) closeAll();
+});
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeAll(); });
+$$(".modal").forEach(function(m){ m.addEventListener("mousedown",function(e){ if(e.target===m) close(m); }); });
+
+["fq","fStatus","fPri","fDept"].forEach(function(id){
+  $("#"+id).addEventListener("input",function(){ renderCalendar(); renderSide(); renderList(); });
+});
+
+$("#btnEdit").onclick=function(){ close($("#viewModal")); openForm(viewingId); };
+$("#btnDel").onclick=function(){
+  var r=byId(viewingId); if(!r) return;
+  if(!confirm("'"+(r.projectName||"")+"' 요청서를 삭제할까요? 되돌릴 수 없습니다.")) return;
+  reqs[reqs.indexOf(r)]=touch({id:r.id,reqNo:r.reqNo,projectName:r.projectName,_del:true});
+  save(); renderAll(); closeAll(); toast("요청서를 삭제했습니다.");
+};
+$("#btnPrint").onclick=function(){
+  var r=byId(viewingId); if(!r) return;
+  $("#printArea").innerHTML='<h1>신제품 촬영 및 편집 업무 요청서</h1>'+
+    '<div class="psub">'+esc(r.reqNo||"")+' · '+esc(r.dept||"")+' · 작성일 '+fmt(r.writeDate)+(staffLine()?' · 미디어마케팅팀 담당 '+esc(staffLine()):"")+'</div>'+detailHtml(r,true);
+  window.print();
+};
+
+/* 자동 임시저장 */
+$("#reqForm").addEventListener("change",function(e){
+  if(e.target&&(e.target.name==="shootNeed"||e.target.name==="editNeed")) sectionToggle();
+});
+$("#reqForm").addEventListener("input",function(e){
+  if(e.target&&e.target.type==="date") dateHints();
+  if(editingId) return;
+  clearTimeout(draftTimer);
+  draftTimer=setTimeout(function(){ Store.setItem(DKEY,JSON.stringify(readForm())); stamp(); },700);
+});
+$("#dropDraft").onclick=function(){
+  Store.removeItem(DKEY);
+  fillForm({writeDate:today(),priority:"일반",status:"접수대기",revision:"기본 1~2회 (추가 수정 시 별도 협의)"});
+  $("#draftBar").hidden=true;
+};
+
+/* 휴무일 관리 */
+function loadHol(){
+  try{ var o=JSON.parse(Store.getItem(HKEY)||"{}"); customHol=o.add||{}; removedHol=o.del||{}; }
+  catch(e){ customHol={}; removedHol={}; }
+}
+function saveHol(){ Store.setItem(HKEY,JSON.stringify({add:customHol,del:removedHol})); pushNas(); }
+function renderHol(){
+  var y=cursor.getFullYear();
+  $("#holYear").textContent=y+"년";
+  var all={};
+  Object.keys(HOLIDAYS).forEach(function(k){ if(k.indexOf(y)===0&&!removedHol[k]) all[k]={n:HOLIDAYS[k],c:false}; });
+  Object.keys(customHol).forEach(function(k){ if(k.indexOf(y)===0) all[k]={n:customHol[k],c:true}; });
+  var keys=Object.keys(all).sort();
+  $("#holList").innerHTML=keys.length? keys.map(function(k){
+    return '<div class="hrow"><span class="hd">'+k.slice(5).replace("-",".")+' ('+dowName(k)+')</span>'+
+      '<span>'+esc(all[k].n)+'</span>'+(all[k].c?'<span class="tag">직접 추가</span>':'')+
+      '<button class="hx" data-del="'+k+'" title="삭제">✕</button></div>';
+  }).join("") : '<div class="empty">'+y+'년에 등록된 휴무일이 없습니다.</div>';
+}
+$("#btnHol").onclick=function(){ $("#holDate").value=""; $("#holName").value=""; renderHol(); open($("#holModal")); };
+$("#holAdd").onclick=function(){
+  var d=$("#holDate").value, n=$("#holName").value.trim()||"회사 휴무";
+  if(!d){ toast("날짜를 선택해 주세요."); return; }
+  customHol[d]=n; delete removedHol[d]; saveHol(); renderHol(); renderAll(); dateHints();
+  $("#holDate").value=""; $("#holName").value="";
+  toast(fmt(d)+" 휴무일로 등록했습니다.");
+};
+$("#holList").addEventListener("click",function(e){
+  var b=e.target.closest("[data-del]"); if(!b) return;
+  var k=b.getAttribute("data-del");
+  if(customHol[k]) delete customHol[k]; else removedHol[k]=1;
+  saveHol(); renderHol(); renderAll(); dateHints(); toast("휴무일에서 제외했습니다.");
+});
+
+/* 담당자 */
+$("#btnStaff").onclick=openStaff;
+$("#stSave").onclick=function(){
+  staff={name:$("#stName").value.trim(),rank:$("#stRank").value.trim(),tel:$("#stTel").value.trim(),
+         ext:$("#stExt").value.trim(),mail:$("#stMail").value.trim(),note:$("#stNote").value.trim()};
+  touch(staff); saveStaff(); closeAll(); toast("담당자 정보를 저장했습니다.");
+};
+
+/* 공유(NAS) */
+$("#btnNas").onclick=function(){ setNasUI(); $("#myName").value=me(); open($("#nasModal")); };
+$("#nasPick").onclick=function(){ closeAll(); connectNas(); };
+$("#nasConnect").onclick=function(){ connectNas(); };
+$("#nasSyncNow").onclick=function(){ pullNas(true); toast("공유 폴더와 동기화했습니다."); };
+$("#nasOff").onclick=function(){
+  if(!confirm("공유 폴더 연결을 해제할까요? 이후 변경 내용은 이 PC에만 저장됩니다.")) return;
+  if(nas.timer) clearInterval(nas.timer);
+  nas={dir:null,file:null,lastMod:0,timer:null,busy:false,syncAt:null};
+  dropHandle(); setNasUI(); closeAll(); toast("연결을 해제했습니다.");
+};
+$("#saveName").onclick=function(){
+  var v=$("#myName").value.trim();
+  if(!v){ toast("이름을 입력해 주세요."); return; }
+  Store.setItem(NKEY,v); setNasUI(); renderChanges(); toast("이름을 저장했습니다.");
+};
+$("#chgList").addEventListener("click",function(e){
+  var a=e.target.closest("[data-id]"); if(a){ openView(a.getAttribute("data-id")); return; }
+  var b=e.target.closest("[data-log]"); if(b){ setTab("eq"); openLog(b.getAttribute("data-log")); }
+});
+
+/* 내보내기 / 불러오기 */
+$("#btnExport").onclick=function(){
+  var blob=new Blob([JSON.stringify({app:"mmt-request",exportedAt:new Date().toISOString(),requests:reqs,equipment:equips,logs:logs,staff:staff,homeText:homeText,depts:{list:depts,updatedAt:deptMeta.updatedAt,updatedBy:deptMeta.updatedBy},holidays:{add:customHol,del:removedHol}},null,2)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="촬영제작요청_백업_"+today()+".json";
+  a.click(); URL.revokeObjectURL(a.href);
+  toast("백업 파일을 내려받았습니다. 공유 폴더에 올려 팀과 공유하세요.");
+};
+$("#btnImport").onclick=function(){ $("#fileIn").click(); };
+$("#fileIn").onchange=function(){
+  var f=this.files[0]; if(!f) return;
+  var fr=new FileReader();
+  fr.onload=function(){
+    try{
+      var data=JSON.parse(fr.result), incoming=data.requests||data;
+      if(!Array.isArray(incoming)) throw 0;
+      var map={}; reqs.forEach(function(r){ map[r.id]=r; });
+      var add=0,upd=0;
+      incoming.forEach(function(r){
+        if(!r||!r.id) return;
+        if(map[r.id]){ if((r.updatedAt||"")>(map[r.id].updatedAt||"")){ reqs[reqs.indexOf(map[r.id])]=r; upd++; } }
+        else{ reqs.push(r); add++; }
+      });
+      var eqAdd=0, lgAdd=0;
+      if(Array.isArray(data.equipment)){
+        var em={}; equips.forEach(function(x){ em[x.id]=x; });
+        data.equipment.forEach(function(x){ if(!x||!x.id) return; if(em[x.id]) equips[equips.indexOf(em[x.id])]=x; else { equips.push(x); eqAdd++; } });
+      }
+      if(Array.isArray(data.logs)){
+        var lm={}; logs.forEach(function(x){ lm[x.id]=x; });
+        data.logs.forEach(function(x){ if(!x||!x.id) return; if(lm[x.id]) logs[logs.indexOf(lm[x.id])]=x; else { logs.push(x); lgAdd++; } });
+      }
+      if(data.equipment||data.logs) saveEq();
+      if(data.staff && tsOf(data.staff)>tsOf(staff)){ staff=data.staff; Store.setItem(SKEY,JSON.stringify(staff)); renderStaff(); }
+      if(data.homeText && tsOf(data.homeText)>tsOf(homeText)){ homeText=data.homeText; Store.setItem(TKEY,JSON.stringify(homeText)); }
+      if(data.depts && data.depts.list && tsOf(data.depts)>tsOf(deptMeta)){
+        depts=data.depts.list; deptMeta={updatedAt:data.depts.updatedAt,updatedBy:data.depts.updatedBy};
+        Store.setItem(DKEY2,JSON.stringify(data.depts)); renderDeptLegend();
+      }
+      if(data.holidays){
+        Object.keys(data.holidays.add||{}).forEach(function(k){ customHol[k]=data.holidays.add[k]; });
+        Object.keys(data.holidays.del||{}).forEach(function(k){ removedHol[k]=1; });
+        saveHol();
+      }
+      save(); renderAll(); renderEq();
+      toast("불러오기 완료 · 요청서 신규 "+add+"건, 갱신 "+upd+"건 / 장비 "+eqAdd+"건, 반출 "+lgAdd+"건");
+    }catch(e){ toast("이 파일은 읽을 수 없습니다. 내보내기로 만든 JSON 파일을 선택해 주세요."); }
+  };
+  fr.readAsText(f); this.value="";
+};
+
+/* ---------- 시작 ---------- */
+loadHol();
+loadDepts();
+loadOpts();
+loadHomeText();
+loadStaff();
+renderStaff();
+load();
+loadEq();
+renderEq();
+fillDatalists();
+selected=today();
+renderAll();
+renderChanges();
+setTab("home");
+setNasUI();
+if(nasSupported()){
+  tryReconnect();
+  setTimeout(function(){ if(!nas.file && $("#nasBanner").hidden) $("#nasBanner").hidden=false; },1200);
+}else{
+  $("#nasMsg").innerHTML='<b>이 브라우저에서는 공유 폴더 기능을 쓸 수 없습니다.</b>';
+  $("#nasSub").textContent="Chrome 또는 Microsoft Edge에서 열어 주세요. 그래도 안 되면 회사 보안 정책으로 막힌 경우이므로, 화면 오른쪽 위 내보내기 / 불러오기로 백업 파일을 주고받아야 팀과 공유됩니다.";
+  $("#nasConnect").hidden=true;
+  $("#nasBanner").hidden=false;
+}
+setInterval(setNasUI,60000);
+if(reqs.length===0){ $("#savedAt").innerHTML='<i style="background:#8E97A6"></i>요청서 0건'; } else stamp();
+})();
+</script>
+</body>
+</html>
